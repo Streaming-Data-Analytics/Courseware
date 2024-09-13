@@ -1,0 +1,59 @@
+{
+  "name": "debezium-connector-mysql",
+  "version": "1.4.0",
+  "title": "Debezium MySQL CDC Connector",
+  "description": "Debezium’s MySQL Connector can monitor and record all of the row-level changes in the databases on a <a href=\"https://www.mysql.com/\">MySQL</a> server or <a href=\"https://www.mysql.com/products/cluster/availability.html\">HA MySQL cluster</a>. The first time it connects to a MySQL server/cluster, it reads a consistent snapshot of all of the databases. When that snapshot is complete, the connector continuously reads the changes that were committed to MySQL 5.6 or later and generates corresponding insert, update and delete events. All of the events for each table are recorded in a separate Kafka topic, where they can be easily consumed by applications and services.\n\nAs of Debezium 0.4.0, this connector adds preliminary support for <a href=\"https://aws.amazon.com/rds/mysql/\">Amazon RDS</a> and <a href=\"https://aws.amazon.com/rds/aurora/\">Amazon Aurora (MySQL compatibility)</a>. However, due to limitations of these hosted forms of MySQL, the connector retains locks during an initial consistent snapshot for the duration of the snapshot.",
+  "documentation_url": "http://debezium.io/docs/connectors/mysql/",
+  "source_url": "https://github.com/debezium/debezium/",
+  "logo": "assets/color_debezium_256px.png",
+  "owner": {
+    "name": "Debezium Community",
+    "username": "debezium",
+    "type": "organization",
+    "url": "https://debezium.io",
+    "logo": "assets/color_debezium_256px.png"
+  },
+  "features": {
+    "confluent_control_center_integration": true,
+    "kafka_connect_api": true,
+    "single_message_transforms": true,
+    "supported_encodings": [
+      "any"
+    ]
+  },
+  "requirements": [
+    "MySQL 5.6.x, 5.7.x, or later"
+  ],
+  "docker_image": {
+    "namespace": "debezium",
+    "name": "debezium/connect",
+    "tag": "1.4.0"
+  },
+  "license": [
+    {
+      "name": "Apache 2.0",
+      "url": "https://github.com/debezium/debezium/blob/master/LICENSE.txt"
+    }
+  ],
+  "support": {
+    "provider_name": "Confluent, Inc.",
+    "summary": "Confluent supports Debezium's MySQL Connector version 0.9.3 and later, and using this connector with MySQL 5.6 or later. Find more information <a href=\"https://docs.confluent.io/current/connect/debezium-connect-mysql/index.html\">here</a>. <p>This connector is <a href=\"https://www.confluent.io/subscription/\">supported by Confluent</a> as part of a\n<a href=\"https://www.confluent.io/product/confluent-platform/\">Confluent Platform</a> subscription.",
+    "url": "https://docs.confluent.io/current/",
+    "logo": "assets/confluent.png"
+  },
+  "component_types": [
+    "source"
+  ],
+  "tags": [
+    "mysql",
+    "dbms",
+    "rdbms",
+    "relational",
+    "change data capture",
+    "cdc",
+    "amazon rds",
+    "amazon aurora",
+    "jdbc",
+    "snapshot"
+  ]
+}

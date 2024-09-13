@@ -1,0 +1,55 @@
+{
+  "name": "debezium-connector-mongodb",
+  "version": "1.9.3",
+  "title": "Debezium MongoDB CDC Connector",
+  "description": "Debezium’s MongoDB Connector can monitor a <a href=\"https://docs.mongodb.com/manual/tutorial/deploy-replica-set/\">MongoDB replica set</a> or a <a href=\"https://docs.mongodb.com/manual/core/sharded-cluster-components/\">MongoDB sharded cluster</a> for document changes in databases and collections, recording those changes as events in Kafka topics. The connector automatically handles the addition or removal of shards in a sharded cluster, changes in membership of each replica set, elections within each replica set, and awaiting the resolution of communications problems.",
+  "documentation_url": "http://debezium.io/docs/connectors/mongodb/",
+  "source_url": "https://github.com/debezium/debezium/",
+  "logo": "assets/color_debezium_256px.png",
+  "owner": {
+    "name": "Debezium Community",
+    "username": "debezium",
+    "type": "organization",
+    "url": "https://debezium.io",
+    "logo": "assets/color_debezium_256px.png"
+  },
+  "features": {
+    "confluent_control_center_integration": true,
+    "kafka_connect_api": true,
+    "single_message_transforms": true,
+    "supported_encodings": [
+      "any"
+    ]
+  },
+  "requirements": [
+    "MongoDB 3.6.x and later"
+  ],
+  "docker_image": {
+    "namespace": "debezium",
+    "name": "debezium/connect",
+    "tag": "1.9.3"
+  },
+  "license": [
+    {
+      "name": "Apache 2.0",
+      "url": "https://github.com/debezium/debezium/blob/master/LICENSE.txt"
+    }
+  ],
+  "support": {
+    "provider_name": "Confluent, Inc.",
+    "summary": "Confluent supports Debezium's MongoDB CDC Connector version 0.9.3 and later, and using this connector with MongoDB version 3.4 or later. Find more information <a href=\"https://docs.confluent.io/current/connect/debezium-connect-mongodb/index.html\">here</a>.<p>This connector is <a href=\"https://www.confluent.io/subscription/\">supported by Confluent</a> as part of a\n<a href=\"https://www.confluent.io/product/confluent-platform/\">Confluent Platform</a> subscription.",
+    "url": "https://docs.confluent.io/current/",
+    "logo": "assets/confluent.png"
+  },
+  "component_types": [
+    "source"
+  ],
+  "tags": [
+    "mongodb",
+    "document database",
+    "json",
+    "change data capture",
+    "cdc",
+    "snapshot"
+  ]
+}

@@ -1,0 +1,11 @@
+bokeh==1.4.0
+Jinja2==2.11.1
+MarkupSafe==2.0.1
+matplotlib
+notebook
+numpy
+pandas
+seaborn
+scikit-learn
+git+https://github.com/motuSML/river@main#egg=river
+
