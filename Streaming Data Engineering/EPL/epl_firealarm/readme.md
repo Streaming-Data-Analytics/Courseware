@@ -135,69 +135,111 @@ Not all the algorithms can be converted to a streaming one, e.g., there is not *
 
 NOTE: even if you cannot read it in the syntax, a *landmark window* opens when the stream starts (or when you register the query in esper) and keeps widening. As a side note, the *logical unbounded table* assumed by spark is a landmark window, so the two words are synonyms. 
 
-#### Q2
-the average temperature observed by each sensor in the last 4 seconds (a.k.a. **logical sliding window**)
+
+#### Q3
+
+The events received in the last 2 seconds every 2 seconds (a.k.a. **logical tumbling window**)
+
+```
+@Name('Q3')
+select *
+from TemperatureSensorEvent.win:time_batch(2 seconds);
+```
+
+#### Q4
+
+The last 2 events received (a.k.a. **physical tumbling window**)
+
+```
+@Name('Q3')
+select *
+from TemperatureSensorEvent.win:length_batch(2);
+```
+
+#### Q5
+
+The events received in the last 4 seconds for every event (a.k.a. **logical sliding window**)
+
+```
+@Name('Q5')
+select *
+from TemperatureSensorEvent.win:time(4 seconds);
+```
+
+Note: it appears to emit only the event it receives when it receives it ...
+
+#### Q6
+
+The last 4 events received for every event (a.k.a. **physical sliding window**)
+
+```
+@Name('Q6')
+select *
+from TemperatureSensorEvent.win:length(2 seconds);
+```
+
+Note: it appears to emit only the event it receives when it receives it ... and it appears to generate exactly the same results of Q5 ...
+
+
+#### Q7
+The average temperature observed by each sensor in the last 4 seconds (a.k.a. **logical sliding window**)
 
 Assumption: the average should change as soon as they receive a new event
 
 ```
-@Name('Q2')
+@Name('Q7')
 select sensor, avg(temperature)
 from TemperatureSensorEvent.win:time(4 seconds)
 group by sensor;
 ```
 
-#### Q1's vs. Q2's results 
+#### Q1's vs. Q7's results 
 
-I am elaborating more on Q2 (landmark window) and the difference with Q3 (sliding window).
+I am elaborating more on Q2 (landmark window) and the difference with Q7 (sliding window).
 
-![](img/EPL07.jpg)
-
-
-#### Q3
-the average temperature of the last 4 seconds every 4 seconds (a.k.a. **logical tumbling window**)
+![](img/EPL07.png)
 
 
-```
-@Name('Q3')
-select sensor, avg(temperature)
-from TemperatureSensorEvent.win:time_batch(4 seconds)
-group by sensor;
-```
-
-#### Q4
+#### Q8
 the moving average of the last 4 temperature events (a.k.a. **physical sliding window**)
 
 ```
-@Name('Q4')
+@Name('Q8')
 select sensor, avg(temperature)
 from TemperatureSensorEvent.win:length(4)
 group by sensor;
 ```
 
-#### Q5
+#### Q9
+the average temperature of the last 4 seconds every 4 seconds (a.k.a. **logical tumbling window**)
+
+
+```
+@Name('Q9')
+select sensor, avg(temperature)
+from TemperatureSensorEvent.win:time_batch(4 seconds)
+group by sensor;
+```
+
+#### Q10
 the moving average of the last 4 temperature events every 4 events (a.k.a. **physical tumbling window**)
 
 ```
-@Name('Q5')
+@Name('Q10')
 select sensor, avg(temperature)
 from TemperatureSensorEvent.win:length_batch(4)
 group by sensor;
 ```
 
-#### Q3 vs. Q4 vs. Q4
-
-![](./img/EPL08.jpg)
-
-#### Q6
+#### Q11
 the average temperature of the last 4 seconds every 2 seconds (a.k.a. **logical hopping window**)
 
 ```
-@Name('Q6')
+@Name('Q11')
 select sensor, avg(temperature)
 from TemperatureSensorEvent.win:time(4 seconds)
 group by sensor
-output last every 2 seconds;
+output snapshot every 2 seconds;
 ```
 
 #### Deep dive into the reporting policy specified by the `output ... every` clause
@@ -205,74 +247,71 @@ output last every 2 seconds;
 first some data
 
 ```
-TemperatureSensorEvent={sensor='S1', temperature=30}
-TemperatureSensorEvent={sensor='S1', temperature=31}
-TemperatureSensorEvent={sensor='S1', temperature=32}
-t=t.plus(1 seconds)
-TemperatureSensorEvent={sensor='S1', temperature=40}
-TemperatureSensorEvent={sensor='S1', temperature=41}
-TemperatureSensorEvent={sensor='S1', temperature=42}
-t=t.plus(1 seconds)
+TemperatureSensorEvent={sensor='S1', temperature=22}
+TemperatureSensorEvent={sensor='S1', temperature=23}
+t=t.plus(5 seconds)  
+TemperatureSensorEvent={sensor='S2', temperature=24}
+TemperatureSensorEvent={sensor='S2', temperature=25}
+t=t.plus(5 seconds)  
+TemperatureSensorEvent={sensor='S3', temperature=26}
+TemperatureSensorEvent={sensor='S3', temperature=27}
+t=t.plus(5 seconds)  
+
 ```
 
 Let's see the different behavior of the following queries.
 
 ```
-@Name('Q2')
-select sensor, avg(temperature)
-from TemperatureSensorEvent.win:time(4 seconds)
-group by sensor;
-
-@Name('Q2.first')
-select sensor, avg(temperature)
-from TemperatureSensorEvent.win:time(4 seconds)
+@Name('Q.agg.all')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent.win:time(10 seconds)
 group by sensor
-output first every 1 second ;
+output all every 5 seconds;
 
-@Name('Q2.last')
-select sensor, avg(temperature)
-from TemperatureSensorEvent.win:time(4 seconds)
+@Name('Q.agg.snapshot')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent.win:time(10 seconds)
 group by sensor
-output last every 1 second ;
-
-@Name('Q2.all')
-select sensor, avg(temperature)
-from TemperatureSensorEvent.win:time(4 seconds)
-group by sensor
-output all every 1 second ;
+output snapshot every 5 seconds;
 
 ```
 
 ![](./img/EPL09.png)
 
-As you can see, `last` and `all` have the same answers. If you want to see a difference between `last` and `all`, we can try to look into the window's content.
+As you can see, `snapshot` and `all` *do not emit the same results*. 
+
+If you want to see a difference between `first` and `last`, we can examine the window's content.
+
 
 ```
-@Name('Q.default')
+@Name('Q.w.first')
 select *
-from TemperatureSensorEvent.win:time(4 seconds)
-;
+from TemperatureSensorEvent.win:time(10 seconds)
+output first every 5 seconds;
 
-@Name('Q.first')
+@Name('Q.w.last')
 select *
-from TemperatureSensorEvent.win:time(4 seconds)
-output first every 1 second ;
-
-@Name('Q.last')
-select*
-from TemperatureSensorEvent.win:time(4 seconds)
-output last every 1 second ;
-
-@Name('Q.all')
-select*
-from TemperatureSensorEvent.win:time(4 seconds)
-output all every 1 second ;
+from TemperatureSensorEvent.win:time(10 seconds)
+output last every 5 seconds;
 ```
 
-`all` returns the entire content of the window. If you want to dive further, check out [section 5.7.1 of the EPL documentation](http://esper.espertech.com/release-8.8.0/reference-esper/html/epl_clauses.html#epl-output-options).
+Notably, in this case, `snapshot` and `all` *emit the same results* because they start from the same window. In the aggregation queries, they treat differently the internal state of the query. 
 
+```
+@Name('Q.w.all')
+select *
+from TemperatureSensorEvent.win:time(10 seconds)
+output all every 5 seconds;
 
-#### Q7
+@Name('Q.w.snapshot')
+select *
+from TemperatureSensorEvent.win:time(10 seconds)
+output snapshot every 5 seconds;
+```
+
+![](./img/EPL08.png)
+
+#### Q12
 
 Let's move on to the pattern matching part (a.k.a., the part of the language for Complex Event Processing)
 
@@ -283,7 +322,7 @@ There is a particular operator to say *followed by* (syntactically  `->`) to use
 Let's try using it naively.
 
 ```
-@Name('Q7.naive')
+@Name('Q12.naive')
 select *
 from pattern [
   s = SmokeSensorEvent(smoke=true)
@@ -300,7 +339,7 @@ Indeed this *tames the torrent effect*, but is there a way to have more results?
 yes, using the [`every` clause](http://esper.espertech.com/release-8.8.0/reference-esper/html/event_patterns.html#pattern-logical-every)
 
 ```
-@Name('Q7.every')
+@Name('Q12.every')
 select *
 from pattern [
  every (
@@ -319,7 +358,7 @@ Moreover, you may not like the payload of the events generated by this query.
 You can create what you want, making a *projection* as in SQL.
 
 ```
-@Name('Q7.every.projection')
+@Name('Q12.every.projection')
 select s.sensor AS sensor, t.temperature AS temperature, s.smoke as smoke
 from pattern [
  every (
@@ -334,7 +373,7 @@ from pattern [
 Now, we need to insert the results in the FireEvent stream.
 
 ```
-@Name('Q7.insert')
+@Name('Q12.insert')
 insert into FireEvent
 select a.sensor AS sensor,
          a.smoke AS smoke,
@@ -348,10 +387,10 @@ from pattern [
 ];
 ```
 
-One last step and we have Q7 finalized. Let's add the "*within 2 minutes*" constraint.
+One last step and we have Q13 finalized. Let's add the "*within 2 minutes*" constraint.
 
 
-```@Name('Q7')
+```@Name('Q12')
 insert into FireEvent
 select s.sensor as sensor, s.smoke as smoke, t.temperature as temperature
 from pattern [
@@ -368,12 +407,12 @@ from pattern [
 
 NOTE: alter some statements that advance the time to change the results. E.g., change one of the last three `t=t.plus(1 seconds)` in `t=t.plus(3 seconds)`
 
-#### Q8
+#### Q13
 
-We are very close to the solution of the running example; we "just" need to count the number of events generated by the previous query over a sliding window of 10 seconds. So let's count the results of  `Q7`
+We are very close to the solution of the running example; we "just" need to count the number of events generated by the previous query over a sliding window of 10 seconds. So let's count the results of  `Q13`
 
 ```
-@Name('Q8')
+@Name('Q13')
 select count(*)
 from FireEvent.win:time(10 seconds);
 ```
