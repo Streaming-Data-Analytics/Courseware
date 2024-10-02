@@ -1,4 +1,4 @@
-bokeh==1.4.0
+bokeh==3.6.0
 Jinja2==2.11.1
 MarkupSafe==2.0.1
 matplotlib
@@ -7,5 +7,5 @@ numpy
 pandas
 seaborn
 scikit-learn
-git+https://github.com/motuSML/river@main#egg=river
+river==0.21.2
 
