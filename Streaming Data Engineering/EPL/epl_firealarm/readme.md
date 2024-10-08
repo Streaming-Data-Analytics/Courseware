@@ -3,7 +3,7 @@
 ## resources
 
 * [espertech](https://www.espertech.com)
-* [EPL documentation](http://esper.espertech.com/release-8.8.0/reference-esper/html/index.html)
+* [EPL documentation](http://esper.espertech.com/release-9.0.0/reference-esper/html_single/)
 * [online environment to try EPL](http://esper-epl-tryout.appspot.com/epltryout/mainform.html)
 
 ## let's get dirty
