@@ -6,6 +6,7 @@ Please refer to [EPL fire allarm](https://github.com/emanueledellavalle/streamin
 
 ### make sure
 
+* you have a large enough machine (processor: 8 cores, memory: 16-32GB)
 * you have [docker](https://docs.docker.com/get-docker/) and docker-compose (they are a single app in Windows and Mac. For Linux [install docker-compose separately](https://docs.docker.com/compose/install/))
 * you do not have any firewall forbidding you from reaching `localhost:8888`
 
@@ -14,6 +15,8 @@ Please refer to [EPL fire allarm](https://github.com/emanueledellavalle/streamin
 ```
 docker-compose up -d
 ```
+
+If you do it for the first time, it takes 10 minutes using a 100 Gbit/s connection because it needs to download 7.8 GB. **Don't do it in class!** If you have a slow connection, do this overnight. 
 
 ### you know you succeeded if
 
