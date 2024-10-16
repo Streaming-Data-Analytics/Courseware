@@ -142,13 +142,14 @@ Declare a continuous query that returns the robotic arms that,
 
 ```
 @Name("Q4") 
+context cycle
 insert into warning
 SELECT a.id 
 FROM pattern [ 
 	every	a=RoboticArm(status="goodGrasped", stressLevel < 7) ->
 			(
-				b=RoboticArm(id = a.id, status="movingGood", stressLevel > 6 and stressLevel < 9) ->
-				c=RoboticArm(id = a.id, status="placingGood", stressLevel < 7) 
+				b=RoboticArm(status="movingGood", stressLevel > 6 and stressLevel < 9) ->
+				c=RoboticArm(status="placingGood", stressLevel < 7) 
 			)
 			where timer:within(10 seconds)
 		] ;
@@ -156,7 +157,7 @@ FROM pattern [
 
 ### Q5
 
-Declare a continuous query that monitors the results of the previous one (i.e., E4) and counts how many times each robotic arm is present in the stream over a window of 10 secondsQ updating the counting every 2 seconds.
+Declare a continuous query that monitors the results of the previous one (i.e., E4) and counts how many times each robotic arm is present in the stream over a window of 10 seconds updating the counting every 2 seconds.
 
 #### Solution
 

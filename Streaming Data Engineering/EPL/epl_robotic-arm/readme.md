@@ -150,9 +150,9 @@ FROM pattern [
 		] ;
 ```
 
-### E5
+### Q5
 
-Declare a continuous query that monitors the results of the previous one (i.e., E4) and counts how many times each robotic arm is present in the stream over a window of 10 seconds, updating the counting every 2 seconds.
+Declare a continuous query that monitors the results of the previous one (i.e., Q4) and counts how many times each robotic arm is present in the stream over a window of 10 seconds, updating the counting every 2 seconds.
 
 #### Solution
 
