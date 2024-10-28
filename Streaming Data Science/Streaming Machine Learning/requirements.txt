@@ -7,5 +7,7 @@ numpy
 pandas
 seaborn
 scikit-learn
+Cython
+RUST
 river==0.21.2
 

@@ -2,7 +2,7 @@
 
 To run the jupyter notebooks, we suggest you to use [Anaconda](https://www.anaconda.com/). Open the terminal into the repository and type the following commands:
 
-- conda create -n *env_name* pip
+- conda create -n *env_name* pip python=3.12
 - conda activate *env_name*
 - pip install -r requirements.txt
 - jupyter notebook
