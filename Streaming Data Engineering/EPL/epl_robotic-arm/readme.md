@@ -26,17 +26,17 @@ There are two forces: the **reality** and the **pragmatism**
 The **reality** pushes for the most detailed model. Notably, the text above may imply that the Force-Sensing Resistors are independent sensors that send their own events separately from the arms. So one may be tempted to propose the following modeling.
 
 ```
-create schema RoboticArm(id int, status string); 
-create schema ForceSensingResistors(idArm string, stressLvl int)
+create schema RoboticArmStatus(id string, status string);
+create schema ForceSensingResistors(idArm string, stressLvl int);
 ```
 
-The **pragmatism**, on the contrary, pushes for the minimum model that allows the continuous process of the data so to satisfy the needs presented in the following point (from Q2 to Q5). If you read them, you may understand that they are possible also with a much simpler model:
+The **pragmatism**, on the contrary, pushes for the minimum model that allows the continuous process of the data so to satisfy the needs presented in the following point (from Q2 to Q5). If you read them, you may understand that they are also possible with a much simpler model:
 
 ```
 create schema RoboticArm( id string, status string, stressLevel int );
 ```
 
-The rest of the proposed solution **follow**s **the pragmatic approach**.
+The rest of the proposed solution **follow**s **the pragmatic approach**. For an explanation about how to transform the "realistic" datamodel into the "pragmatic" one, see the bonus section at the end of this readme. 
 
 #### Best practices
 
@@ -165,6 +165,64 @@ output last every 2 sec;
 ```
 
 ## Bonus content
+
+### Converting the "realistic" data model in the "pragmatic one"
+
+Given the stream:
+
+```
+RoboticArmStatus={id="1", status="ready"}
+ForceSensingResistors={idArm="1", stressLvl=0}
+
+t=t.plus(1 seconds)
+RoboticArmStatus={id="1", status="goodGrasped"}
+ForceSensingResistors={idArm="1", stressLvl=1}
+
+t=t.plus(1 seconds)
+RoboticArmStatus={id="1", status="movingGood"}
+ForceSensingResistors={idArm="1", stressLvl=7}
+
+RoboticArmStatus={id="2", status="ready"}
+ForceSensingResistors={idArm="2", stressLvl=0}
+
+t=t.plus(1 seconds)
+RoboticArmStatus={id="2", status="goodGrasped"}
+ForceSensingResistors={idArm="2", stressLvl=5}
+
+t=t.plus(1 seconds)
+RoboticArmStatus={id="2", status="movingGood"}
+ForceSensingResistors={idArm="2", stressLvl=9}
+
+t=t.plus(5 seconds)
+RoboticArmStatus={id="2", status="placingGood"}
+ForceSensingResistors={idArm="2", stressLvl=3}
+
+RoboticArmStatus={id="1", status="placingGood"}
+ForceSensingResistors={idArm="1", stressLvl=3}
+
+t=t.plus(4 seconds)
+RoboticArmStatus={id="1", status="moving"}
+ForceSensingResistors={idArm="1", stressLvl=2}
+
+RoboticArmStatus={id="2", status="moving"}
+ForceSensingResistors={idArm="2", stressLvl=1}
+
+t=t.plus(3 seconds)
+RoboticArmStatus={id="1", status="ready"}
+ForceSensingResistors={idArm="1", stressLvl=0}
+
+RoboticArmStatus={id="2", status="ready"}
+ForceSensingResistors={idArm="2", stressLvl=0}
+```
+
+The following query turns it into the one used throughout this readme:
+
+```
+insert into RoboticArm
+select R.id as id, R.status as status, F.stressLvl as stressLevel
+from RoboticArmStatus#lastevent as R inner join
+     ForceSensingResistors#lastevent as F on R.id = F.idArm;
+```
 
 ### relaxing assumptions
 
