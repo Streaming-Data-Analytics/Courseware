@@ -651,8 +651,11 @@ Bring the result to the next lecture. It is where we start.
 
 ## Acknowledgements
 
-This module owes its shape to ["Crossing the Streams — Joins in Apache
-Kafka"](https://www.confluent.io/blog/crossing-streams-joins-apache-kafka/), which is where
-the seven scenarios come from, and the intervals between them, reproduced here beat for beat.
-The domain is different, and the schemas, the queries, the trace and every result in this file
-are new. The article is very much worth reading on its own terms.
+This module owes its shape to **"Crossing the Streams — Joins in Apache Kafka"** by Florian
+Troßbach, written in May 2017 on codecentric and republished in September 2017 on Confluent's
+blog. That is where the seven scenarios come from, and the intervals between them, reproduced
+here beat for beat. The domain is different, and the schemas, the queries, the trace and every
+result in this file are new. The article is very much worth reading on its own terms.
+
+* https://www.codecentric.de/wissens-hub/blog/crossing-streams-joins-apache-kafka
+* https://www.confluent.io/blog/crossing-streams-joins-apache-kafka/
