@@ -139,21 +139,26 @@ from HallCall#time(9 sec) as h
 
 ```
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * Q.6.1-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
+   * Statement: Q.6.1
+      * Insert
+         * Q.6.1-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * Q.6.1-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
+   * Statement: Q.6.1
+      * Insert
+         * Q.6.1-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:07.000
-   * Insert
-      * Q.6.1-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
-      * Q.6.1-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
+   * Statement: Q.6.1
+      * Insert
+         * Q.6.1-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
+         * Q.6.1-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.1-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.1
+      * Insert
+         * Q.6.1-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.1-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.1
+      * Insert
+         * Q.6.1-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
 ```
 
 Six rows. The call at (2, UP) matches, and so does (6, DOWN) even though its service arrived
@@ -187,39 +192,50 @@ from HallCall#time(9 sec) as h
 
 ```
 * At: 2001-01-01 08:00:00.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=2, dir='UP'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=2, dir='UP'}}, d=(null)}
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=4, dir='UP'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=4, dir='UP'}}, d=(null)}
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:04.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=7, dir='UP'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=7, dir='UP'}}, d=(null)}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d=(null)}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d=(null)}
 * At: 2001-01-01 08:00:07.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
-      * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
+         * Q.6.2-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
 * At: 2001-01-01 08:00:08.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d=(null)}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d=(null)}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.2
+      * Insert
+         * Q.6.2-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
 ```
 
 Twelve rows, and the six of the inner join are among them. The other six have `d=(null)`.
@@ -274,23 +290,29 @@ from HallCall#unique(floor, dir) as h
 
 ```
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=2, dir='UP'}}, d={DoorOpened={car='A', floor=2, servedDir='UP'}}}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:07.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=3, dir='UP'}}, d={DoorOpened={car='B', floor=3, servedDir='UP'}}}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='A', floor=5, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:09.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=5, dir='DOWN'}}, d={DoorOpened={car='B', floor=5, servedDir='DOWN'}}}
 * At: 2001-01-01 08:00:11.000
-   * Insert
-      * Q.6.3-output={h={HallCall={floor=4, dir='UP'}}, d={DoorOpened={car='B', floor=4, servedDir='UP'}}}
+   * Statement: Q.6.3
+      * Insert
+         * Q.6.3-output={h={HallCall={floor=4, dir='UP'}}, d={DoorOpened={car='B', floor=4, servedDir='UP'}}}
 ```
 
 Six rows again — the same number as Q.6.1, but not the same rows. Two differences, and each
@@ -351,8 +373,9 @@ from HallCall as h
 
 ```
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * Q.6.4-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
+   * Statement: Q.6.4
+      * Insert
+         * Q.6.4-output={h={HallCall={floor=6, dir='DOWN'}}, d={DoorOpened={car='B', floor=6, servedDir='DOWN'}}}
 ```
 
 One row, out of seven calls. Only (6, DOWN) had a `DoorOpened` waiting in the view at the
@@ -394,28 +417,35 @@ create window PendingCall#unique(floor, dir) as HallCall;
 
 ```
 * At: 2001-01-01 08:00:00.000
-   * Insert
-      * PendingCall={floor=2, dir='UP'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=2, dir='UP'}
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * PendingCall={floor=4, dir='UP'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=4, dir='UP'}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * PendingCall={floor=6, dir='DOWN'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=6, dir='DOWN'}
 * At: 2001-01-01 08:00:04.000
-   * Insert
-      * PendingCall={floor=7, dir='UP'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=7, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * PendingCall={floor=3, dir='UP'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * PendingCall={floor=3, dir='UP'}
-   * Remove
-      * PendingCall={floor=3, dir='UP'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=3, dir='UP'}
+      * Remove
+         * PendingCall={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:08.000
-   * Insert
-      * PendingCall={floor=5, dir='DOWN'}
+   * Statement: Q.6.5
+      * Insert
+         * PendingCall={floor=5, dir='DOWN'}
 ```
 
 The first thing to notice is that **there is a result at all**. `create window` is not a
@@ -440,26 +470,33 @@ insert into PendingCall select * from HallCall;
 
 ```
 * At: 2001-01-01 08:00:00.000
-   * Insert
-      * PendingCall={floor=2, dir='UP'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=2, dir='UP'}
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * PendingCall={floor=4, dir='UP'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=4, dir='UP'}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * PendingCall={floor=6, dir='DOWN'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=6, dir='DOWN'}
 * At: 2001-01-01 08:00:04.000
-   * Insert
-      * PendingCall={floor=7, dir='UP'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=7, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * PendingCall={floor=3, dir='UP'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * PendingCall={floor=3, dir='UP'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:08.000
-   * Insert
-      * PendingCall={floor=5, dir='DOWN'}
+   * Statement: Q.6.6
+      * Insert
+         * PendingCall={floor=5, dir='DOWN'}
 ```
 
 Seven inserts, no removes — and this is the pair worth staring at. At 08:00:06 the feed
@@ -484,26 +521,33 @@ select floor, dir from PendingCall;
 
 ```
 * At: 2001-01-01 08:00:00.000
-   * Insert
-      * Q.6.7-output={floor=2, dir='UP'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=2, dir='UP'}
 * At: 2001-01-01 08:00:01.000
-   * Insert
-      * Q.6.7-output={floor=4, dir='UP'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=4, dir='UP'}
 * At: 2001-01-01 08:00:03.000
-   * Insert
-      * Q.6.7-output={floor=6, dir='DOWN'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=6, dir='DOWN'}
 * At: 2001-01-01 08:00:04.000
-   * Insert
-      * Q.6.7-output={floor=7, dir='UP'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=7, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * Q.6.7-output={floor=3, dir='UP'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:06.000
-   * Insert
-      * Q.6.7-output={floor=3, dir='UP'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=3, dir='UP'}
 * At: 2001-01-01 08:00:08.000
-   * Insert
-      * Q.6.7-output={floor=5, dir='DOWN'}
+   * Statement: Q.6.7
+      * Insert
+         * Q.6.7-output={floor=5, dir='DOWN'}
 ```
 
 Seven rows. The window is genuinely shared: this statement was written without any knowledge
