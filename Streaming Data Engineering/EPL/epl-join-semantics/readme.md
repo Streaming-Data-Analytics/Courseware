@@ -1,5 +1,8 @@
 # EPL — Join semantics on elevator dispatching
 
+*by [Emanuele Della Valle](https://emanueledellavalle.org/) and
+[Claude](https://claude.com/product/overview)*
+
 ## Introduction
 
 A passenger presses a hall button. Some time later, a car opens its doors at that floor,
@@ -659,3 +662,18 @@ result in this file are new. The article is very much worth reading on its own t
 
 * https://www.codecentric.de/wissens-hub/blog/crossing-streams-joins-apache-kafka
 * https://www.confluent.io/blog/crossing-streams-joins-apache-kafka/
+
+This module was written by [Emanuele Della Valle](https://emanueledellavalle.org/) and
+[Claude](https://claude.com/product/overview), together, and it is worth saying how, because
+the division of labour is the reason you can trust the numbers.
+
+Emanuele designed the course, decided what this module had to teach and in what order, and
+**executed every query on the EPL online tool**. Claude designed the adversarial trace,
+drafted the text and the structure, and checked every stated output against the recorded run.
+
+The result blocks in this file are **extracted from that run, not transcribed by hand** — the
+one time they were typed out by hand, two rows at the same timestamp came out in the wrong
+order, which is exactly the kind of error a reader has no way to catch.
+
+Claude's work on this course is sponsored by
+[Quantia Consulting](https://www.quantiaconsulting.com/).
