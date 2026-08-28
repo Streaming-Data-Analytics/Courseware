@@ -693,14 +693,21 @@ the deck.
   unanswered — was a `null` you had to interpret last lecture, and is a `Starved` event with
   a timestamp here. Both are correct; only one can wake somebody up.
 
-* **`wait-trend` is not the dashboard source it looks like.** It carries
-  `group by dir`, and a group with no members produces no row at all. Once the last
-  `WaitTime` leaves the two-minute window, the statement keeps being called on schedule and
-  delivers nothing — so a dashboard fed by it keeps showing the last average it ever saw,
-  forever, for a building where nobody has been served in minutes. The same query **without**
-  `group by` keeps emitting, with `count` zero and `avg` null. This was verified; see
-  `reference/verified-output.md`. It is also the reporting-policy lecture's problem, and it
-  comes back there.
+* **`wait-trend` is not the dashboard source it looks like — and the fix is one word.** It
+  carries `group by dir` and `output snapshot`, and a group with no members produces no row
+  at all. Once the last `WaitTime` leaves the two-minute window the statement keeps being
+  called on schedule and delivers nothing, so a dashboard fed by it keeps showing the last
+  average it ever saw, forever, for a building where nobody has been served in minutes.
+
+  The remedy is **`output all`** in place of `output snapshot`. `all` re-reports every group
+  it has ever seen, and reports an emptied one with a **null** aggregate — which is exactly
+  the message a dashboard needs. The grouping is kept; only the reporting policy changes.
+  Both halves are verified: see `reference/verified-output.md` for the silence under
+  `snapshot`, and `reference/verified-output-firealarm.md` for the null under `all`.
+
+  One caveat worth stating out loud: `all` reports every group **ever seen**, so the report
+  grows with the number of distinct keys and never shrinks. Two directions, fine. A fleet,
+  think again.
 
 * **Rule evaluation order is not in the language.** `bids` emits A before B at 08:00:01 and B
   before A at 08:00:11. That is internal named-window order after evictions, not semantics.
