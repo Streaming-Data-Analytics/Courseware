@@ -707,17 +707,110 @@ are now **two independent settings**, which is what a *hopping* window is.
       *
 * At: 2001-01-01 08:00:12.000
    * Statement: Q.3.11
+      *
+* At: 2001-01-01 08:00:14.000
+   * Statement: Q.3.11
+      *
+* At: 2001-01-01 08:00:16.000
+   * Statement: Q.3.11
+      *
+* At: 2001-01-01 08:00:18.000
+   * Statement: Q.3.11
+      *
+* At: 2001-01-01 08:00:20.000
+   * Statement: Q.3.11
+      *
 ```
 
-Three answers — 35.0, 52.0, 57.0 — and then three blocks in which `Q.3.11` is **named and says
-nothing**. That is not a rendering accident. The window has emptied, the group has no members,
-and this particular combination of clauses reports an empty group by producing no row.
+Three answers — 35.0, 52.0, 57.0 — and then **seven blocks in which `Q.3.11` is named and says
+nothing**, one every two seconds, marching on to the end of the trace.
+
+That is not a rendering accident, and the number matters. The window has emptied, the group
+has no members, and this combination of clauses reports an empty group by producing no row —
+but the statement is still being **called on schedule**, and will keep being called for as
+long as the query runs. Three empty blocks would look like a tail. Seven, at a fixed rhythm
+with nothing to say, look like what they are: a query that has stopped answering and has not
+stopped being asked.
 
 Compare it with `Q.3.7`, four lines up the page, which reported exactly the same emptiness as
 `avgTemp=(null)`. Same data, same window, same `group by`, two different silences. The clause
-that differs is `output snapshot every`, and that is precisely what part 2 is about.
+that differs is `output snapshot every`, and that is precisely what part 2 is about — and what
+goes wrong on the other end of it.
 
-## 5. What "nothing left" looks like — part 1's summary
+## 5. One instant, seen whole
+
+Every transcript so far has been filtered to the statements under discussion. Here is a single
+instant, 08:00:04, with all thirteen queries deployed and nothing filtered out:
+
+```
+* At: 2001-01-01 08:00:04.000
+   * Statement: Q.3.3
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=55.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=56.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=57.0}
+   * Statement: Q.3.7
+      * Insert
+         * Q.3.7-output={sensor='S1', avgTemp=52.0}
+   * Statement: Q.3.9
+      * Insert
+         * Q.3.9-output={sensor='S1', avgTemp=47.6}
+   * Statement: Q.3.9probe
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=30.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=40.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=55.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=56.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=57.0}
+   * Statement: Q.3.11
+      * Insert
+         * Q.3.11-output={sensor='S1', avgTemp=52.0}
+* At: 2001-01-01 08:00:04.000
+   * Statement: Q.3.1
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=58.0}
+   * Statement: Q.3.1bis
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=58.0}
+   * Statement: Q.3.2
+      * Insert
+         * Q.3.2-output={sensor='S1', avgTemp=49.333333333333336}
+   * Statement: Q.3.4
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=57.0}
+         * TemperatureSensorEvent={sensor='S1', temperature=58.0}
+   * Statement: Q.3.5
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=58.0}
+   * Statement: Q.3.6
+      * Insert
+         * TemperatureSensorEvent={sensor='S1', temperature=58.0}
+   * Statement: Q.3.7
+      * Insert
+         * Q.3.7-output={sensor='S1', avgTemp=53.2}
+   * Statement: Q.3.8
+      * Insert
+         * Q.3.8-output={sensor='S1', avgTemp=56.5}
+```
+
+**Two dispatches, same millisecond, and the split between them is not arbitrary.**
+
+The first block is everything **the clock** caused: `Q.3.3`'s two-second batch closing,
+`Q.3.7`'s four-second window evicting the reading of 30, `Q.3.9`'s four-second batch closing,
+the probe showing that batch's five rows, and `Q.3.11`'s scheduled report. Not one of them was
+triggered by an event.
+
+The second block is everything **the arrival of 58** caused: the two filters, the landmark
+average, the physical batch that finally reached two, the two sliding windows, and the new
+averages.
+
+That is the rule you have now met four times, stated once and for all: **at any instant, the
+engine does what the clock owes first, and only then delivers the events of that instant.**
+Every callback in this module — batch boundaries, window evictions, `output ... every`
+reports, and in part 3 the expiry of a pattern guard — sits in the first block. Everything
+driven by an arrival sits in the second.
+
+## 6. What "nothing left" looks like — part 1's summary
 
 | statement | when the window has emptied |
 |---|---|
