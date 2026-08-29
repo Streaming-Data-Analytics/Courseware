@@ -1,0 +1,186 @@
+-- Fire alarm module — every statement in readme.md, generated from the same source.
+-- Parts 1 and 3 run against the module trace; part 2 (Q.4.*) against its own.
+
+create schema TemperatureSensorEvent (
+  sensor string,
+  temperature double
+);
+
+create schema SmokeSensorEvent (
+  sensor string,
+  smoke boolean
+);
+
+create schema FireEvent (
+  sensor string,
+  smoke boolean,
+  temperature double
+);
+
+@name('Q.3.1')
+select *
+from TemperatureSensorEvent
+where temperature > 50;
+
+@name('Q.3.1bis')
+select *
+from TemperatureSensorEvent(temperature > 50);
+
+@name('Q.3.2')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent
+group by sensor;
+
+@name('Q.3.3')
+select *
+from TemperatureSensorEvent#time_batch(2 seconds);
+
+@name('Q.3.4')
+select *
+from TemperatureSensorEvent#length_batch(2);
+
+@name('Q.3.5')
+select *
+from TemperatureSensorEvent#time(4 seconds);
+
+@name('Q.3.6')
+select *
+from TemperatureSensorEvent#length(4);
+
+@name('Q.3.7')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#time(4 seconds)
+group by sensor;
+
+@name('Q.3.8')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#length(4)
+group by sensor;
+
+@name('Q.3.9')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#time_batch(4 seconds)
+group by sensor;
+
+@name('Q.3.9probe')
+select irstream *
+from TemperatureSensorEvent#time_batch(4 seconds);
+
+@name('Q.3.10')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#length_batch(4)
+group by sensor;
+
+@name('Q.3.11')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#time(4 seconds)
+group by sensor
+output snapshot every 2 seconds;
+
+@name('Q.4.1')
+select *
+from TemperatureSensorEvent#time(10 seconds)
+output first every 5 seconds;
+
+@name('Q.4.2')
+select *
+from TemperatureSensorEvent#time(10 seconds)
+output last every 5 seconds;
+
+@name('Q.4.3')
+select *
+from TemperatureSensorEvent#time(10 seconds)
+output all every 5 seconds;
+
+@name('Q.4.4')
+select *
+from TemperatureSensorEvent#time(10 seconds)
+output snapshot every 5 seconds;
+
+@name('Q.4.5')
+select *
+from TemperatureSensorEvent#time(20 seconds)
+output all every 5 seconds;
+
+@name('Q.4.6')
+select *
+from TemperatureSensorEvent#time(20 seconds)
+output snapshot every 5 seconds;
+
+@name('Q.4.7')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#time(10 seconds)
+group by sensor
+output all every 5 seconds;
+
+@name('Q.4.8')
+select sensor, avg(temperature) as avgTemp
+from TemperatureSensorEvent#time(10 seconds)
+group by sensor
+output snapshot every 5 seconds;
+
+@name('Q.5.1')
+select *
+from pattern [
+  s = SmokeSensorEvent(smoke=true)
+  -> TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+];
+
+@name('Q.5.2')
+select *
+from pattern [
+  every (
+    s = SmokeSensorEvent(smoke=true)
+    -> TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+  )
+];
+
+@name('Q.5.3')
+select s.sensor as sensor, t.temperature as temperature, s.smoke as smoke
+from pattern [
+  every (
+    s = SmokeSensorEvent(smoke=true)
+    -> t = TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+  )
+];
+
+@name('Q.5.4')
+insert into FireEvent
+select s.sensor as sensor, s.smoke as smoke, t.temperature as temperature
+from pattern [
+  every (
+    s = SmokeSensorEvent(smoke=true)
+    -> t = TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+  )
+];
+
+@name('Q.5.5')
+select count(*) as fires
+from FireEvent#time(10 seconds);
+
+@name('Q.5.6')
+insert into FireEvent
+select s.sensor as sensor, s.smoke as smoke, t.temperature as temperature
+from pattern [
+  every (
+    s = SmokeSensorEvent(smoke=true)
+    -> ( t = TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+         where timer:within(2 seconds) )
+  )
+];
+
+@name('Q.5.7')
+select s.sensor as sensor, t.temperature as temp
+from pattern [
+  every ( s = SmokeSensorEvent(smoke=true)
+          -> t = TemperatureSensorEvent(temperature > 50, sensor=s.sensor)
+          where timer:within(2 seconds) )
+];
+
+@name('Q.5.8')
+select s.sensor as sensor, t.temperature as temp
+from pattern [
+  every ( ( s = SmokeSensorEvent(smoke=true)
+            -> t = TemperatureSensorEvent(temperature > 50, sensor=s.sensor) )
+          where timer:within(2 seconds) )
+];

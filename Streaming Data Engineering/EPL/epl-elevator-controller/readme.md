@@ -699,6 +699,11 @@ the deck.
   called on schedule and delivers nothing, so a dashboard fed by it keeps showing the last
   average it ever saw, forever, for a building where nobody has been served in minutes.
 
+  The blame belongs to `snapshot`, not to `group by`. The same aggregation with **no**
+  `output` clause reports the emptied group with a null aggregate, and so does `output all`.
+  Of the three, `snapshot` is the only one that answers with silence — which is why swapping
+  that one word is enough.
+
   The remedy is **`output all`** in place of `output snapshot`. `all` re-reports every group
   it has ever seen, and reports an emptied one with a **null** aggregate — which is exactly
   the message a dashboard needs. The grouping is kept; only the reporting policy changes.
