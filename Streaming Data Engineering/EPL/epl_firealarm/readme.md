@@ -847,11 +847,14 @@ t=t.plus(5 seconds)
 TemperatureSensorEvent={sensor='S3', temperature=26}
 TemperatureSensorEvent={sensor='S3', temperature=27}
 t=t.plus(5 seconds)
+t=t.plus(5 seconds)
+t=t.plus(5 seconds)
 ```
 
-Two readings at 08:00:00, two more at 08:00:05, two more at 08:00:10, and the clock stops at
-08:00:15. Each pair comes from a different sensor. Reports fall at 08:00:05, 08:00:10 and
-08:00:15 — always on the same instant as a pair of arrivals, which turns out to matter.
+Two readings at 08:00:00, two more at 08:00:05, two more at 08:00:10 — each pair from a
+different sensor — and then the clock runs on to 08:00:25 with nothing arriving. Reports fall
+every five seconds, at :05, :10, :15, :20 and :25. The first three land on the same instant as
+a pair of arrivals, which matters; the last two land on an empty building, which matters more.
 
 ## 1. The four policies, side by side
 
@@ -934,33 +937,52 @@ All four deployed at once, same window, same rhythm, different last word:
       * Insert
          * TemperatureSensorEvent={sensor='S3', temperature=26.0}
          * TemperatureSensorEvent={sensor='S3', temperature=27.0}
+* At: 2001-01-01 08:00:20.000
+   * Statement: Q.4.2
+      *
+   * Statement: Q.4.3
+      *
+   * Statement: Q.4.4
+      *
+* At: 2001-01-01 08:00:25.000
+   * Statement: Q.4.2
+      *
+   * Statement: Q.4.3
+      *
+   * Statement: Q.4.4
+      *
 ```
 
-Start with what is **not** on that page. `Q.4.1` does not report at 08:00:05 with the others.
-It reports at **08:00:00**, the moment the first reading arrives, and then says nothing until
-its interval closes. That is what `first` means: *let the first one through immediately, then
-be quiet*. The other three wait for the boundary. If you take one thing from this section,
-take that — a tick-box table of which values each policy emits will never show it.
+Start with what is **not** where you expect it. `Q.4.1` does not report at 08:00:05 with the
+others. It reports at **08:00:00**, the moment the first reading arrives, and then says nothing
+until its interval closes. That is what `first` means: *let the first one through immediately,
+then be quiet*. The other three wait for the boundary.
 
 Then the two blocks at 08:00:05, in that order. The first is the boundary report for the
 interval that just ended, and it contains only 22 and 23. The second is `Q.4.1` releasing the
 24 that arrived at that same instant. **The callback runs before the events of its own
-instant** — the same rule as `Q.3.3`'s first batch and `Q.3.7`'s eviction, met for the third
-time.
+instant** — part 1 section 5, again, and it will not be the last time.
 
-And the four answers themselves:
+Now the last two blocks, where nothing has arrived for ten seconds. `Q.4.2`, `Q.4.3` and
+`Q.4.4` are each **named with nothing under them**: called on schedule, answering with silence.
+`Q.4.1` is not there at all — **no entry, in either block.**
 
-| policy | the question it answers |
-|---|---|
-| `first` | *has anything happened?* — tell me at once, then leave me alone |
-| `last` | *what is the latest?* |
-| `all` | *what has arrived since I last reported?* |
-| `snapshot` | *what is in the window right now?* |
+That is not the tool being inconsistent. It is `first` being, once again, the one policy that
+is not driven by the clock: it fires when an event *arrives*, so with no arrivals it has
+nothing scheduled and nothing to report. Both of its peculiarities — reporting early at
+08:00:00, and disappearing entirely at 08:00:20 — are the same fact seen from two ends.
+
+| policy | the question it answers | when nothing has arrived |
+|---|---|---|
+| `first` | *has anything happened?* — tell me at once, then leave me alone | absent; it has no callback |
+| `last` | *what is the latest?* | named, empty |
+| `all` | *what has arrived since I last reported?* | named, empty |
+| `snapshot` | *what is in the window right now?* | named, empty — the window is empty too |
 
 ## 2. When `all` and `snapshot` look like synonyms
 
-Read the transcript again and `all` and `snapshot` are identical, row for row. The temptation
-is to conclude they are two names for the same thing.
+Read the first three reports again and `all` and `snapshot` are identical, row for row. The
+temptation is to conclude they are two names for the same thing.
 
 They are not, and the agreement is an artefact of the numbers. The window is ten seconds and
 the report is every five, so on every boundary the previous interval's readings expire on the
@@ -1017,20 +1039,49 @@ output snapshot every 5 seconds;
          * TemperatureSensorEvent={sensor='S2', temperature=25.0}
          * TemperatureSensorEvent={sensor='S3', temperature=26.0}
          * TemperatureSensorEvent={sensor='S3', temperature=27.0}
+* At: 2001-01-01 08:00:20.000
+   * Statement: Q.4.5
+      *
+   * Statement: Q.4.6
+      * Insert
+         * TemperatureSensorEvent={sensor='S2', temperature=24.0}
+         * TemperatureSensorEvent={sensor='S2', temperature=25.0}
+         * TemperatureSensorEvent={sensor='S3', temperature=26.0}
+         * TemperatureSensorEvent={sensor='S3', temperature=27.0}
+* At: 2001-01-01 08:00:25.000
+   * Statement: Q.4.5
+      *
+   * Statement: Q.4.6
+      * Insert
+         * TemperatureSensorEvent={sensor='S3', temperature=26.0}
+         * TemperatureSensorEvent={sensor='S3', temperature=27.0}
 ```
 
-Now they separate cleanly. `Q.4.5` reports a constant two readings per interval. `Q.4.6`
-reports two, then four, then six, because with a twenty-second window nothing has expired yet
-by 08:00:15.
+They separate immediately, and then keep separating.
 
-That is why the previous example is a bad place to build intuition and a good place to be
-warned. Whenever two policies agree, ask what would have to change for them to disagree.
+`Q.4.6`, the snapshot, reports **2 rows, then 4, then 6, then 4, then 2**. Watch it fill as
+readings arrive and drain as they age out, with the turn at 08:00:15 where the last pair
+arrives and the first pair is one instant from leaving. Nothing but the clock produces the
+second half of that sequence.
+
+`Q.4.5`, `all`, reports two rows per interval while readings are arriving — and then, at
+08:00:20 and 08:00:25, **nothing at all**, an empty body, while `Q.4.6` beside it is still
+reporting four rows and then two. The window is *not* empty. `all` simply has nothing **new**
+to say about it.
+
+That is the sentence to keep:
+
+> `all` does not mean *repeat everything*. It means **everything since the last report** — and
+> when nothing has arrived, that is nothing.
+
+Which also settles why the previous example is a bad place to build intuition and a good place
+to be warned. Whenever two policies agree, ask what would have to change for them to disagree.
 
 ## 3. The same choice over an aggregation
 
 Everything so far was `select *`, where the policy applies to a window of rows. Put an
-aggregation with a `group by` underneath and the policy applies to something else: the
-**aggregation's own state**, one entry per group.
+aggregation with a `group by` underneath and the policy applies to something else entirely:
+the **aggregation's own state**, one entry per group.
 
 ```
 @name('Q.4.7')
@@ -1073,29 +1124,53 @@ output snapshot every 5 seconds;
    * Statement: Q.4.8
       * Insert
          * Q.4.8-output={sensor='S3', avgTemp=26.5}
+* At: 2001-01-01 08:00:20.000
+   * Statement: Q.4.7
+      * Insert
+         * Q.4.7-output={sensor='S1', avgTemp=(null)}
+         * Q.4.7-output={sensor='S2', avgTemp=(null)}
+         * Q.4.7-output={sensor='S3', avgTemp=(null)}
+   * Statement: Q.4.8
+      *
+* At: 2001-01-01 08:00:25.000
+   * Statement: Q.4.7
+      * Insert
+         * Q.4.7-output={sensor='S1', avgTemp=(null)}
+         * Q.4.7-output={sensor='S2', avgTemp=(null)}
+         * Q.4.7-output={sensor='S3', avgTemp=(null)}
+   * Statement: Q.4.8
+      *
 ```
 
 ![](img/EPL09.png)
 
-Now they differ sharply, and in a direction that is not obvious.
-
 `Q.4.8`, the snapshot, reports exactly the groups that have members: `S1` at 08:00:05, then
-`S2` at 08:00:10, then `S3` at 08:00:15. Sensible, and quiet about everything else.
+`S2`, then `S3` — and then, at 08:00:20 and 08:00:25, an empty body. Sensible, and quiet about
+everything else.
 
-`Q.4.7`, `all`, reports **every group it has ever seen**, and reports the ones that have
-emptied with `avgTemp=(null)`. `S1` is still in the report at 08:00:15, ten seconds after its
-last reading left the window. Notice also that `S2` and `S3` are absent from the first report:
-a group joins the report when it is first seen and never leaves.
+`Q.4.7`, `all`, reports **every group it has ever seen**, and reports the emptied ones with
+`avgTemp=(null)`. `S1` is still in the report at 08:00:25, twenty seconds after its last
+reading left the window. Notice also that `S2` and `S3` are absent from the first report: a
+group joins the report when it is first seen and never leaves.
 
-Which of those you want depends entirely on who is listening.
+**And now put this beside section 2, because the same word did two different things.** At
+08:00:20, in one and the same block, `Q.4.5` — `all` over a plain `select` — said nothing,
+while `Q.4.7` — `all` over an aggregation — reported three groups. Both are "everything since
+the last report". The difference is what *persists* between reports: a plain `select` has only
+the rows that arrived, and none did; an aggregation has its **groups**, and those do not go
+away.
+
+Which of the two you want depends entirely on who is listening.
 
 > If the consumer is **remembering** what you told it — a dashboard, a table, anything with
 > state — then silence is indistinguishable from *unchanged*, and `snapshot` will leave the
-> last average for `S1` on the screen forever, for a sensor that stopped reporting ten seconds
-> ago. `all` is what tells it the group has emptied.
+> last average for `S1` on the screen forever, for a sensor that stopped reporting twenty
+> seconds ago. `all` is what tells it the group has emptied.
 >
-> The price is that `all` reports every key ever seen, so the report grows with the number of
-> distinct keys and never shrinks. Three sensors, fine. A fleet, think again.
+> The price is on the page too: at 08:00:25 `Q.4.7` is reporting three sensors, all null,
+> none of which will ever report again, and it will go on doing so for as long as the query
+> runs. The report grows with the number of distinct keys and never shrinks. Three sensors,
+> fine. A fleet, think again.
 
 This is not a theoretical worry. It is exactly the bug in the elevator controller's wait-time
 dashboard in [the lecture on state and lifecycles](https://github.com/Streaming-Data-Analytics/Courseware/tree/main/Streaming%20Data%20Engineering/EPL/epl-elevator-controller),
@@ -1107,12 +1182,14 @@ Part 1's table, now finished:
 
 | statement | when the window or group is empty |
 |---|---|
-| plain `select *` over any window | **nothing at all** — not even a block |
+| `output first every` | **no entry at all** — it has no callback to fire |
+| plain `select *` over any window, no `output` clause | **nothing at all** — not even a block |
+| `output last` / `all` / `snapshot every` over a plain `select` | the statement, named, with an **empty body** |
 | aggregation + `group by`, no `output` clause | the group, with a **null** aggregate |
 | aggregation + `group by` + `output snapshot every` | the statement, named, with an **empty body** |
 | aggregation + `group by` + `output all every` | the group with **null**, and every other group ever seen, for as long as the query runs |
 
-Four behaviours. All four were executed to write this table, and no two of them can be
+Six behaviours. Every one of them was executed to write this table, and no two of them can be
 guessed from the others.
 
 ---
