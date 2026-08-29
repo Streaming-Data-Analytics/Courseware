@@ -1237,21 +1237,22 @@ Both at once, so the difference is one transcript:
 * At: 2001-01-01 08:00:02.000
    * Statement: Q.5.1
       * Insert
-         * stmt2_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
+         * stmt3_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
    * Statement: Q.5.2
       * Insert
-         * stmt3_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
+         * stmt4_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
 * At: 2001-01-01 08:00:03.000
    * Statement: Q.5.2
       * Insert
-         * stmt3_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
+         * stmt4_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
 * At: 2001-01-01 08:00:04.000
    * Statement: Q.5.2
       * Insert
-         * stmt3_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
+         * stmt4_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
 ```
 
-`Q.5.1` fires **once**. `Q.5.2` fires **three times**.
+`Q.5.1` fires **once**, at 08:00:02, and then has no entry at all in the two blocks that
+follow — not an empty body, no entry. `Q.5.2` fires **three times**.
 
 `Q.5.1` is not broken. A pattern without `every` describes **one** occurrence: match it once
 and you are done, forever. That is the language's default, and it is a deliberate one — it
@@ -1265,10 +1266,10 @@ more output than input. If you want to be flooded, you have to ask.
 Look at what those rows actually contain:
 
 ```
-stmt3_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
+stmt4_pat_0_0={s={SmokeSensorEvent={sensor='S1', smoke=true}}}
 ```
 
-Two problems, and neither is about taste.
+Three problems, and none of them is about taste.
 
 **The temperature is not there.** Only `s` was tagged; the temperature operand was written
 without a name, so it takes part in the match and then vanishes. The query announces that a
@@ -1278,9 +1279,10 @@ fire was detected and discards the number that proves it.
 field that differs between the three matches is the one that was not tagged. Only the
 timestamps tell them apart — and a consumer downstream does not get to see the timestamps.
 
-**And the event type is named after a position.** `stmt2_pat_0_0` and `stmt3_pat_0_0`: the 2
-and the 3 are where those statements sat in the deployment. Add a statement above them and
-the type names change under you.
+**And the event type is named after a position in the deployment.** `Q.5.1` emits rows of type
+`stmt3_pat_0_0` and `Q.5.2` of type `stmt4_pat_0_0` — count the three `create schema`
+declarations at the top of this file and you have found the 3 and the 4. Add a statement above
+them, or take one away, and the type names change under you.
 
 All three are fixed the same way, by naming what you want and projecting it, exactly as in
 SQL:
