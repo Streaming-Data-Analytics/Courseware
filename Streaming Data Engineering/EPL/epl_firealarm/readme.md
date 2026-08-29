@@ -1476,12 +1476,14 @@ from pattern [
          * Q.5.5-output={fires=0}
 ```
 
-Compare that with the transcript above it. **It is the same result.** Three fires, the same
-temperatures, the same rise and the same decay.
+Compare that with the transcript above it, and compare it carefully, because the two are more
+alike than they look. **They differ in exactly three lines, and all three are the name of the
+statement.** Every timestamp, every temperature, every value of `fires`: the same character
+for character.
 
-That is worth saying out loud rather than glossing over: **on this trace the guard changes
-nothing**, because every smoke event is followed by its temperature within one second and a
-two-second limit never bites. Ten seconds would not bite either. A constraint that never
+So there is nothing subtle to go looking for. **On this trace the guard changes nothing**,
+because every smoke event is followed by its temperature within one second and a two-second
+limit never bites. Ten seconds would not bite either — that was tried. A constraint that never
 fires teaches you nothing about constraints.
 
 So change the trace. Take the advance between the `T=56 / T=57 / S=true` block and `T=58`,
