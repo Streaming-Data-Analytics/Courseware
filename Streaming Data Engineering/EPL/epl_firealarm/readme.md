@@ -1410,6 +1410,16 @@ That is the whole idea of a sliding window in one transcript, and it is why the 
 to 08:00:20 after the last reading. **The answer to a continuous question is not a number. It
 is a time series, and it comes back to zero by itself.**
 
+One more thing about that last row, and it connects straight back to part 2. `fires=0` is
+reported **once**, at 08:00:14, and then `Q.5.5` says nothing for the rest of the trace: it has
+no `output` clause, so it speaks only when its window changes, and once the last `FireEvent`
+has left there is nothing more to remove. Here silence means *still zero*, and reading it that
+way is correct.
+
+Now recall `Q.4.8` in part 2, whose silence meant *the group emptied and I will not mention it
+again* — the opposite. **The same silence, two opposite meanings, and nothing in the output
+tells them apart.** Only knowing which clauses the statement carries does.
+
 ## 5. The guard — and an example in which it does nothing
 
 One clause of the running example is still missing: *within two minutes*. Without it,
