@@ -1,0 +1,96 @@
+-- epl-every-and-guard-patterns — every statement of readme.md,
+-- generated from the same source, so the two cannot drift apart.
+--
+-- Sections 1 and 2 run against the module trace; section 2.4, the annex
+-- and each lab bring their own. The traces are in the readme.
+
+create schema A ( n int );
+create schema B ( n int );
+create schema C ( n int );
+
+create schema TemperatureSensorEvent (
+  sensor string,
+  temperature double
+);
+
+@name('Q.5.9')
+select x.n
+from pattern [ x=A ];
+
+@name('Q.5.10')
+select x.n
+from pattern [ every x=A ];
+
+@name('Q.5.10bis')
+select n
+from A;
+
+@name('Q.5.11')
+select x.n, y.n
+from pattern [ every (x=A -> y=B) ];
+
+@name('Q.5.12')
+select x.n, y.n
+from pattern [ every x=A -> y=B ];
+
+@name('Q.5.13')
+select x.n, y.n
+from pattern [ x=A -> every y=B ];
+
+@name('Q.5.14')
+select x.n, y.n
+from pattern [ every x=A -> every y=B ];
+
+@name('Q.5.15')
+select x.n, y.n
+from pattern [ every x=A -> (y=B where timer:within(2 seconds)) ];
+
+@name('Q.5.15bis')
+select x.n, y.n
+from pattern [ every x=A -> y=B where timer:within(2 seconds) ];
+
+@name('Q.5.16')
+select x.n, y.n
+from pattern [ every x=A -> (y=B and not z=A) ];
+
+@name('Q.5.17')
+select a.n, b.n, c.n
+from pattern [ every a=A -> b=B -> c=C ];
+
+@name('Q.5.18')
+select a.n, b.n, c.n
+from pattern [ every a=A -> ( b=B -> c=C ) where timer:within(4 seconds) ];
+
+@name('Q.5.19')
+select a.n, b.n, c.n
+from pattern [ every a=A -> ( b=B -> c=C where timer:within(4 seconds) ) ];
+
+@name('Q.5.20')
+select a.n, b.n, c.n
+from pattern [ every a=A -> b=B -> c=C where timer:within(4 seconds) ];
+
+@name('Q.5.21')
+select a.n, b.n, c.n
+from pattern [ every ( a=A -> b=B -> c=C ) where timer:within(4 seconds) ];
+
+@name('Q.5.22')
+select x.n, y.n, z.n
+from pattern [
+  every x=A -> ( (y=B and not z=C) where timer:within(3 seconds) )
+];
+
+@name('Q.5.23')
+select up.sensor as sensor, up.temperature as peak, down.temperature as back
+from pattern [
+  every up = TemperatureSensorEvent(temperature > 50)
+  -> ( down = TemperatureSensorEvent(temperature < 50, sensor = up.sensor)
+       where timer:within(4 seconds) )
+];
+
+@name('Q.5.24')
+select up.sensor as sensor, up.temperature as peak, down.temperature as back
+from pattern [
+  every ( up = TemperatureSensorEvent(temperature > 50)
+          -> ( down = TemperatureSensorEvent(temperature < 50, sensor = up.sensor)
+               where timer:within(4 seconds) ) )
+];
