@@ -30,37 +30,52 @@ it matters, it costs matches, and it is the wrong thing to open with.
 * [EPL documentation](http://esper.espertech.com/release-9.0.0/reference-esper/html_single/)
 * [online environment to try EPL](http://esper-epl-tryout.appspot.com/epltryout/mainform.html)
 
-## Patterns are automata
+Behind the drawings in the next section, for anyone who wants the formal version:
 
-Everything below follows from one fact, and it is worth stating before any syntax.
+* Agrawal, Diao, Gyllstrom, Immerman,
+  [*Efficient Pattern Matching over Event Streams*](https://people.cs.umass.edu/~immerman/pub/sase+sigmod08.pdf),
+  SIGMOD 2008 — the **NFA^b** model: a non-deterministic automaton plus a match buffer
+* Giatrakos, Alevizos, Artikis, Deligiannakis, Garofalakis,
+  [*Complex event recognition in the Big Data era: a survey*](https://link.springer.com/article/10.1007/s00778-019-00557-w),
+  VLDB Journal 2020 — including the automata-based and the Petri-net-based families
 
-**A pattern is a finite-state machine.** The engine compiles the pattern once, into a machine
-with a start state, one edge per operand, and one accepting state. At run time it keeps
-**instances** of that machine alive — each with its own position in it and its own bindings
-for `x`, `y`, `z`. An event is offered to every live instance. An instance that reaches the
-accepting state **fires**: it emits one row, with its own bindings, and ends.
+## A pattern is a machine; a match is a token running through it
 
-Three sentences then hold the whole module.
+Everything below is easier if you carry one picture, and the picture has **two halves that
+must be kept apart**.
 
-**1. A pattern with no `every` is a machine with no loop.**
+The **machine** is the shape of the pattern: a place to start, one edge per operand, one
+accepting place. It is drawn once and it never changes — it is what you wrote.
+
+The **tokens** are what runs on it. A token is one partial match in progress: it sits on a
+place, and it carries **its own bindings** for `x`, `y`, `z` and its own clock. Every arriving
+event is offered to every token. A token that reaches the accepting place **fires** — it emits
+one row, made of the bindings it was carrying, and it is gone.
+
+*Token* and **instance** mean the same thing below; the first is the better word when what
+matters is how many are on the board, the second when what matters is what one of them is
+doing.
+
+Keep those apart and the whole module is three sentences.
+
+**1. A pattern with no `every` puts exactly one token on the board.**
 
 ![](img/plain.png)
 
-It runs once, fires, and is finished. Nothing restarts it, so the second `A` in the stream
-falls on a machine that no longer exists. You have met this already: it is the same
+It advances, fires, and there is nothing left. Nothing puts a second token down, so the second
+`A` in the stream arrives to find an empty board. You have met this already: it is the same
 distinction as `output first` in lecture 4 — speak once, then never again.
 
-**2. `every` is a self-loop — and where you put the loop decides how many instances are alive
-at the same time.**
+**2. `every` is a self-loop, and a self-loop is a token factory — so where you put the loop
+decides how many tokens are on the board at once.**
 
-A self-loop on a state means: when this edge is taken, **spawn a second instance without
-consuming the first**. Put the loop around the whole pattern and you get one instance at a
-time, restarted after each match. Put it on the first operand and you get one instance per
-`A`, all waiting together. Put it on the second and you get a single instance that re-arms
-for ever. Put it on both and you get every instance you can have. The four variants of
-section 1 are those four placements and nothing else.
+Taking a self-loop means: **put a new token down without picking up the one that was there**.
+Put the loop around the whole pattern and there is one token at a time, replaced after each
+match. Put it on the first operand and every `A` drops a token, all waiting together. Put it
+on the second and one token sits there re-arming for ever. Put it on both and you get every
+token you can have. The four variants of section 1 are those four placements and nothing else.
 
-**3. A guard is an edge that kills an instance** — and it produces no output.
+**3. A guard is an edge that removes a token from the board** — and it produces no output.
 
 There are exactly two kinds, and the difference is what is written on the edge:
 
@@ -71,19 +86,50 @@ There are exactly two kinds, and the difference is what is written on the edge:
 
 That is the whole difference, and section 2 measures it.
 
-**The alphabet of the drawings below**, used consistently in all seven:
+**The alphabet of the drawings**, used consistently in all seven:
 
 | symbol | meaning |
 |---|---|
-| filled dot | where an instance starts |
-| plain circle | a live instance, waiting for something |
-| double circle | the instant the pattern fires and emits a row |
-| dashed red circle | an instance the engine has discarded — **silently** |
-| self-loop | an `every`: the edge that spawns a second instance |
-| dashed grey edge | a restart, not a transition on an event |
+| filled dot | where a token is put down |
+| plain circle | a place a token can wait on |
+| double circle | the accepting place: a token that gets here emits a row and is gone |
+| dashed red circle | where the engine takes a token off the board — **silently** |
+| self-loop | an `every`: the edge that puts down a token without picking one up |
+| dashed grey edge | a token replaced after a match, not a transition on an event |
 
 Count the loops, and count where they sit. The row counts follow. Nothing below needs to be
 memorised.
+
+### What a pattern is not
+
+The two halves are worth separating because the obvious short version — *a pattern is a
+finite-state machine* — is **wrong**, in a way this module runs into on almost every page.
+
+* **Not a deterministic automaton.** A DFA is in one state. Section 1.6 shows one event
+  producing three rows from one statement, because three tokens were waiting.
+* **Not a plain non-deterministic automaton either.** An NFA is in a *set* of states, which is
+  still finite. But the two rows `{2,3}` and `{3,3}` at 08:00:06 come from two tokens **on the
+  same place**, told apart only by what they carry. A finite automaton has nowhere to keep
+  that: the alphabet here is infinite, because events carry data. You need registers.
+* **And the board is not finite-state at all.** In section 1.5 the number of tokens grows with
+  the stream. Finitely many places, unboundedly many tokens on them, each carrying data — that
+  is a **marking**, not a state, and the distinction is exactly the one between an automaton
+  and a Petri net. The last bullet of *Notes and observations* is the operational consequence.
+
+The nearest thing in the literature to what is drawn here is SASE's **NFA^b** — a
+non-deterministic automaton *plus a match buffer*, whose runtime is a set of **runs**, each run
+carrying a state, a start time and a value vector
+([Agrawal, Diao, Gyllstrom and Immerman, SIGMOD 2008](https://people.cs.umass.edu/~immerman/pub/sase+sigmod08.pdf)).
+Add clocks for `timer:within` and you are in timed-automaton territory; take the unbounded
+multiset of tokens seriously and coloured Petri nets are the natural home, which is why part
+of the CEP literature models these languages that way instead
+([survey](https://link.springer.com/article/10.1007/s00778-019-00557-w)).
+
+**None of which is a claim about Esper.** The reference documentation describes neither
+patterns nor `match_recognize` in terms of a state machine — of `match_recognize` it says only
+that it is *"very similar to a regular-expression pattern"*, an analogy rather than a model.
+The drawings here are a **model for reasoning about the behaviour**, and they earn their place
+by predicting it. Every number in this file comes from a run, never from a drawing.
 
 ## Event types
 
@@ -154,9 +200,10 @@ anything happened:
 
 Two things about that shape carry information in this module:
 
-* **the number of rows under one `Statement:` at one instant is the number of live instances
-  that just fired.** In lecture 3 several rows at one instant meant several dispatches; here
-  it means several *copies of the same machine*, and section 1.6 is built on it;
+* **the number of rows under one `Statement:` at one instant is the number of tokens that just
+  reached the accepting place.** In lecture 3 several rows at one instant meant several
+  dispatches; here it means several partial matches completing together, and section 1.6 is
+  built on it;
 * **a statement that produces no block at all is saying something.** Every silence below is
   load-bearing, and each one is named where it occurs.
 
@@ -447,16 +494,21 @@ Here is the block that is worth more than the four sections above it. `B3` arriv
          * Q.5.14-output={x.n=3, y.n=3}
 ```
 
-| statement | rows | live instances at that moment | which ones |
+| statement | rows | tokens waiting on `B` at that moment | which ones |
 |---|---|---|---|
-| `Q.5.11` | **1** | 1 | the single instance, on its second cycle, started by `A2` |
+| `Q.5.11` | **1** | 1 | the single token, on its second cycle, put down by `A2` |
 | `Q.5.12` | **2** | 2 | `A2`'s and `A3`'s |
 | `Q.5.13` | **1** | 1 | `A1`'s, the only one there has ever been |
 | `Q.5.14` | **3** | 3 | `A1`'s, `A2`'s and `A3`'s |
 
-**One event, four answers, and each number is the number of live machines.** Nothing else
-about the four statements differs — same trace, same instant, same operands, same run. Only
-the loops moved.
+**One event, four answers, and each number is the number of tokens on the board.** Nothing
+else about the four statements differs — same trace, same instant, same operands, same run.
+Only the loops moved.
+
+And notice what `Q.5.14` settles: **three rows, three tokens, one place**. All three were
+waiting on the same circle in the same drawing, and they are distinguishable only by the `A`
+each is carrying. That is the row that makes *state* the wrong word and *marking* the right
+one — see *What a pattern is not*, above.
 
 If a student remembers one thing from this module, this is the block.
 
@@ -477,9 +529,9 @@ Read the table from the *loops* column and it stops being a table to learn.
 
 ---
 
-# 2. Guards — the edge that kills an instance
+# 2. Guards — the edge that takes a token off the board
 
-Everything in section 1 is monotone: instances are born and they fire. Nothing gives up.
+Everything in section 1 is monotone: tokens are put down and they fire. Nothing gives up.
 That is unusable in practice — `every x=A -> y=B` will happily pair an `A` with a `B` that
 arrives a week later, and in the meantime it keeps the instance, and its bindings, in memory
 forever.
@@ -738,10 +790,13 @@ and exercise it in both directions.
   pedantry: a student who leaves with three false equivalences has learnt something worse than
   nothing.
 
-* **Instances cost memory.** Every live instance holds its own bindings, and in section 1.5
-  the count of them grows with the stream. `every A -> every B` on a real stream is not a
-  slow query, it is an unbounded one. This is where lecture 5 stops and the question of state
-  and lifecycle starts.
+* **Tokens cost memory, and this is where the machine picture stops being a metaphor.** Every
+  token holds its own bindings, and in section 1.5 the count of them grows with the stream:
+  each new `A` adds one that never leaves. The *drawing* has three circles no matter how long
+  the stream runs — but what the engine is holding is the **multiset of tokens on them**, and
+  that has no bound. So `every A -> every B` on a real stream is not a slow query, it is an
+  unbounded one, and no amount of looking at the three circles tells you so. This is where
+  lecture 5 stops and the question of state and lifecycle starts.
 
 ---
 
@@ -1100,6 +1155,14 @@ restructured the material and wrote the text. Every transcript was extracted fro
 run by script rather than retyped, and every statement was generated from the same source as
 `everyandguard.epl`, so the two cannot drift apart. The ground truth is in
 `reference/verified-output-lecture5.md`.
+
+The opening section was rewritten once more after that, on the owner's challenge. It had said
+*a pattern is a finite-state machine*, which is false and which the module's own transcripts
+refute: three rows from one statement at one instant are three tokens on one place, told apart
+only by what they carry, and their number grows with the stream. It had also asserted that the
+engine "compiles the pattern into a machine" — a claim about an implementation that
+EsperTech's documentation nowhere makes. Both are withdrawn. What is left is a model, named as
+one, with the literature it comes from cited and the limits of it stated in the section itself.
 
 Three things changed on the evidence. The four `every` tables had never been executed; they
 turned out to be **correct, row for row**. Two pairs of queries that the material presented
