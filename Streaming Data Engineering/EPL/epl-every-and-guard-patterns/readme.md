@@ -213,9 +213,9 @@ reordered and no row is retyped: every transcript in this file was extracted by 
 a recorded run, and every statement was generated from the same source as
 `everyandguard.epl`.
 
-**One honest caveat.** `Q.5.10bis` is the only statement in this file that was **not executed
-in this pass**; it is carried over from the previous version of the module, and it is flagged
-where it appears.
+**Every statement in this file was executed**, including the two that the previous version of
+the module only asserted were equivalent. Where two queries agree, the file says whether they
+agree by rule or by arithmetic, and a trace that separates them follows.
 
 ---
 
@@ -273,10 +273,52 @@ select n
 from A;
 ```
 
-> **Not executed in this pass.** The claim that `Q.5.10bis` and `Q.5.10` agree is inherited
-> from the earlier version of this module. The *shape* is verified elsewhere — `Q.3.1` in the
-> fire alarm module is a plain `select` off a stream and produces exactly one row per arrival,
-> at the arrival instant — but the two statements have not been run side by side here.
+Deployed side by side on the same trace:
+
+```
+* At: 2001-01-01 08:00:00.000
+   * Statement: Q.5.10
+      * Insert
+         * Q.5.10-output={x.n=1}
+   * Statement: Q.5.10bis
+      * Insert
+         * Q.5.10bis-output={n=1}
+* At: 2001-01-01 08:00:04.000
+   * Statement: Q.5.10
+      * Insert
+         * Q.5.10-output={x.n=2}
+   * Statement: Q.5.10bis
+      * Insert
+         * Q.5.10bis-output={n=2}
+* At: 2001-01-01 08:00:05.000
+   * Statement: Q.5.10
+      * Insert
+         * Q.5.10-output={x.n=3}
+   * Statement: Q.5.10bis
+      * Insert
+         * Q.5.10bis-output={n=3}
+* At: 2001-01-01 08:00:07.000
+   * Statement: Q.5.10
+      * Insert
+         * Q.5.10-output={x.n=4}
+   * Statement: Q.5.10bis
+      * Insert
+         * Q.5.10bis-output={n=4}
+```
+
+**Four blocks, and both statements are in every one of them.** The same instants, the same
+four values, in the same order — and there is no instant at which one speaks and the other
+does not. The two silences agree too: neither produces a row against any of the four `B`
+events, and neither says anything after 08:00:08.
+
+So the pattern spelling of *every A* and the plain `select` off the `A` stream are the same
+query. Which is the point: **continuous semantics is what `every` means**, and every `select`
+in lectures 3 and 4 has had an `every` in it all along, unwritten.
+
+One thing in that transcript is *not* equal, and it is worth a second. `Q.5.10` prints
+`{x.n=1}`; `Q.5.10bis` prints `{n=1}`. One projects a property of a **tag the pattern bound**,
+the other a property of the **stream** — same value, same instant, different column name. It
+is the only visible trace of one of the two being a pattern at all.
 
 ## 1.2 `every ( A -> B )` — one instance at a time
 
