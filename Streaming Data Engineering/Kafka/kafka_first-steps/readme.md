@@ -5,8 +5,8 @@
 
 ## Introduction
 
-Twenty minutes with **Kafka on its own** — no ksqlDB, no Spark. One topic, three
-partitions, a producer and a handful of consumers, and the four facts the rest of the Kafka
+Twenty-five minutes with **Kafka on its own** — no ksqlDB, no Spark. One topic, three
+partitions, a producer and a handful of consumers, and the five facts the rest of the Kafka
 lecture assumes you have already seen:
 
 | | the fact | the slide it makes executable |
@@ -15,6 +15,7 @@ lecture assumes you have already seen:
 | 2 | with no key the partition is **random per batch**, not round-robin per message — so a fast producer concentrates and a slow one spreads; with a key it is `hash(key) % n` | *Reconciling the two views* |
 | 3 | a **consumer group** splits the partitions between its members, one reader each | *Topic partitioning invites distributed consumption*, *Consumer Group and scalability* |
 | 4 | a group is a **cursor, not a queue**: reading does not consume | *Log retention* |
+| 5 | the **encoding** is a factor in MB/s: the same event is 115 bytes as JSON and 18 as Avro | *Data/Message matters!* |
 
 It exists because of a gap. The five ksqlDB modules of this course are excellent at what
 they do, and what they do is **hide all of this behind SQL**. Without this module the first
@@ -28,6 +29,8 @@ outputs only settle them.
 ## Resources
 
 * [Apache Kafka documentation](https://kafka.apache.org/documentation/)
+* [Apache Avro documentation](https://avro.apache.org/docs/) — the schema language and the binary encoding
+* [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html) — what this module deliberately does *not* use
 * [The client used here: confluent-kafka-python](https://docs.confluent.io/kafka-clients/python/current/overview.html)
 * [Where these topics are read at scale: the elevator fleet](../../Spark/sss_elevator-fleet/readme.md)
 
@@ -71,7 +74,8 @@ module and the Spark ones.
 | *One consumer in a group reads every partition* | one consumer in group `dashboard` | how many of the 27 does it get? |
 | *Two consumers in the same group split the partitions* | a second consumer joins and the group rebalances | how do 3 partitions divide by 2? and what about a 4th consumer? |
 | *A group is a cursor, not a queue* | a brand-new group reads from `earliest` | how many messages does it see? |
-| *Clean up* | delete the topic | — |
+| *The same event, in Avro* | encode one door event as JSON and as Avro, change the schema and watch it shrink again, then compare the batches of a thousand of each | the same event is 115 bytes as JSON — how small in Avro? |
+| *Clean up* | delete the three topics | — |
 
 The one thing that can look like a failure and is not: after the second consumer joins,
 the group **rebalances**, and that takes a few seconds during which both consumers hold
@@ -84,9 +88,11 @@ member the broker does not consider present.
 docker-compose down
 ```
 
-## What to take away, if only one thing
+## What to take away
 
-**The partition count is the decision.** It caps the parallelism of every consumer group
+**Two decisions, and you make both before a single message exists.** The **encoding** fixes the bytes per event, and the assignment of this lecture multiplies that by 150,000 units: a sixth of the payload is a different cluster, for the same information.
+
+And **the partition count.** It caps the parallelism of every consumer group
 that will ever read the topic; it is the unit inside which order is guaranteed and outside
 which it is not; and because a key's partition is `hash(key) % n`, changing it later moves
 keys and breaks the ordering they were bought for. You choose it before a single message

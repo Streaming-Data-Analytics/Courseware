@@ -10,6 +10,10 @@
 #
 # --only-binary=:all: says: use a prebuilt wheel or fail, rather than starting a
 # source build of librdkafka that looks exactly like a hang.
-pip install --quiet --only-binary=:all: confluent-kafka==2.5.0 \
-  || echo "WARNING: could not install confluent-kafka. From a terminal on your host:
-    docker exec -it kafka-first-steps-notebook pip install confluent-kafka==2.5.0"
+#
+# [avro] is the client's own extra, and it is what the Avro section of the notebook
+# needs: it brings fastavro, which is also what confluent-kafka's own AvroSerializer
+# uses underneath. No separate dependency of ours.
+pip install --quiet --only-binary=:all: 'confluent-kafka[avro]==2.5.0' \
+  || echo 'WARNING: could not install the client. From a terminal on your host:
+    docker exec -it kafka-first-steps-notebook pip install "confluent-kafka[avro]==2.5.0"'

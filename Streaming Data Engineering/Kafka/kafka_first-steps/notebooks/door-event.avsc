@@ -1,0 +1,14 @@
+{
+  "namespace": "it.polimi.sda",
+  "type": "record",
+  "name": "DoorEvent",
+  "doc": "One door movement of one elevator. The naive translation of the JSON event: every field a string, exactly as it was written by hand.",
+  "fields": [
+    {"name": "event",     "type": "string"},
+    {"name": "unitId",    "type": "string"},
+    {"name": "ts",        "type": {"type": "long", "logicalType": "timestamp-millis"}},
+    {"name": "car",       "type": "string"},
+    {"name": "floor",     "type": "int"},
+    {"name": "servedDir", "type": "string"}
+  ]
+}
