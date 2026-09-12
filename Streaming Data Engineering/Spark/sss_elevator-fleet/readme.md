@@ -105,6 +105,14 @@ Sections are named by the headings in the notebooks, so you can always tell wher
 | 12 | monitoring | *The sizing arithmetic* → *Check your denominator before you believe the number* → *The counterintuitive part* | two rates computed from the same run, 63% apart. Both are correct; only one sizes a cluster |
 | 13 | both | *Clean up* in the monitoring notebook, then the last cell of the simulator | the three queries stop; the two topics are deleted |
 
+### the notebooks ship with their outputs
+
+The two notebooks in this repository are **saved as they ran**, so you can read the whole
+module — every table, every metric — without starting docker at all. If you would rather meet
+the questions cold, as the lecture does, open the monitoring notebook and use **Kernel →
+Restart Kernel and Clear All Outputs** before step 2: the three *stop and predict* moments
+only work if the answer is not already on the screen.
+
 ### an empty table is a question, not a failure
 
 It happens by design at steps 2 and 6, and it has exactly three causes:
