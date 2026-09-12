@@ -1,0 +1,59 @@
+---
+# Kafka & Spark Structured Streaming — the elevator fleet
+#
+# Two services, and both images are multi-architecture: docker pulls the variant
+# that matches your host, so this runs natively on Apple Silicon, on Intel and on
+# Windows/WSL2. That is not cosmetic. The images the other Spark modules of this
+# course use are linux/amd64 only, and under emulation the notebook kernel wedges
+# — unkillably — the moment a cell shells out, which is how an install cell can
+# produce no output at all and then refuse to be interrupted.
+#
+# Kafka runs in KRaft mode, so there is no ZooKeeper: it is deprecated in the 3.x
+# line and gone from Kafka 4, and the single-node quorum below is the whole of
+# the coordination layer.
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: kafka
+    ports:
+      # 9092 is the *internal* listener, reachable as `kafka:9092` from the
+      # notebook container. 29092 is published for tools running on your laptop
+      # (kcat, a local client). They have to be two listeners: a broker
+      # advertises one address per listener, `kafka` does not resolve on your
+      # laptop, and `localhost` does not resolve inside the docker network.
+      - 29092:29092
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,HOST://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # off on purpose. The simulator creates `elevator-events` with 6 partitions
+      # and `elevator-faults` with 1, and that asymmetry is part of the lecture.
+      # With auto-creation on, running the monitoring notebook first would
+      # silently create a 1-partition topic and the explicit creation would then
+      # fail — a wrong number instead of a clear error.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  notebook:
+    image: quay.io/jupyter/pyspark-notebook:spark-3.5.0
+    container_name: fleet-notebook
+    depends_on:
+      - kafka
+    ports:
+      - 8888:8888
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      # runs before the Jupyter server starts. The Kafka client is installed
+      # here rather than from a notebook cell, so nothing in the lecture depends
+      # on a kernel being able to launch a subprocess.
+      - ./setup/20-kafka-client.sh:/usr/local/bin/before-notebook.d/20-kafka-client.sh:ro
+    environment:
+      - JUPYTER_TOKEN=sda
