@@ -1,0 +1,51 @@
+---
+# Kafka, first steps
+#
+# The same two-service stack as Spark/sss_elevator-fleet, deliberately: both
+# images are multi-architecture, so docker pulls the variant of your host and
+# this runs natively on Apple Silicon, on Intel and on Windows/WSL2 — and the
+# two modules share their layers, so the download happens once.
+#
+# Kafka runs in KRaft mode: no ZooKeeper.
+#
+# NOTE: this module and sss_elevator-fleet both publish 8888 and 29092. Run one
+# at a time, and `docker-compose down` in the other module's folder first.
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: kafka-first-steps
+    ports:
+      # the internal listener is kafka:9092, reachable from the notebook
+      # container; 29092 is published for tools on your own machine
+      - 29092:29092
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,HOST://:29092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # off on purpose. This module is about what a topic *is*; a topic that
+      # springs into existence with one partition because someone mistyped a
+      # name would undo the first section of the notebook.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+  notebook:
+    image: quay.io/jupyter/pyspark-notebook:spark-3.5.0
+    container_name: kafka-first-steps-notebook
+    depends_on:
+      - kafka
+    ports:
+      - 8888:8888
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      # the Kafka client is installed at container start, not from a cell
+      - ./setup/20-kafka-client.sh:/usr/local/bin/before-notebook.d/20-kafka-client.sh:ro
+    environment:
+      - JUPYTER_TOKEN=sda
