@@ -7,7 +7,12 @@
 
 Twenty-five minutes with **Kafka on its own** — no ksqlDB, no Spark. One topic, three
 partitions, a producer and a handful of consumers, and the five facts the rest of the Kafka
-lecture assumes you have already seen:
+lecture assumes you have already seen.
+
+What travels is the course's own **door event**, byte for byte the JSON the fleet simulator
+of lecture 10 produces — 115 bytes, six fields. The topic is a sandbox of its own,
+`elevator-doors` with 3 partitions, because here the partition count is the exercise; the
+fleet's `elevator-events` has 6, and that number is a different lesson.
 
 | | the fact | the slide it makes executable |
 |---|---|---|
@@ -69,8 +74,8 @@ module and the Spark ones.
 | section | what you will do | stop and predict |
 |---|---|---|
 | *A topic is a set of partitions* | create `elevator-doors` with 3 partitions, and read the metadata back | — |
-| *With no key, the client spreads them itself* | produce 9 messages fast, then 9 messages 30 ms apart, and count the partition switches in each | how will nine spread over three? and what changes with a pause? |
-| *With a key, the partition is a function of the key* | produce 3 messages each for three units, keyed by `unitId` | do three keys give three partitions? |
+| *With no key, the client spreads them itself* | produce 9 door events fast, then the same 9 at 30 ms apart, and count the partition switches in each | how will nine spread over three? and what changes with a pause? |
+| *With a key, the partition is a function of the key* | the same events for three units, this time keyed by `unitId` | do three keys give three partitions? |
 | *One consumer in a group reads every partition* | one consumer in group `dashboard` | how many of the 27 does it get? |
 | *Two consumers in the same group split the partitions* | a second consumer joins and the group rebalances | how do 3 partitions divide by 2? and what about a 4th consumer? |
 | *A group is a cursor, not a queue* | a brand-new group reads from `earliest` | how many messages does it see? |
