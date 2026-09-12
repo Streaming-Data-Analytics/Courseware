@@ -368,8 +368,8 @@ Paste it whole. Do not read it line by line yet.
 
 ```
 // Elevator dispatching controller — reference module
-// Verified on the EPL online tool (Esper 9.0.0) against reference/elevator-trace.txt
-// Observed output recorded in reference/verified-output.md
+// Verified on the EPL online tool (Esper 9.0.0): every output shown in this module
+// was read off a run, never predicted.
 //
 // Building: floors 0..9. Two cars, A and B. Floor 0 has UP only, floor 9 DOWN only.
 // This is the target artifact of this module. Do not change it without re-running the trace.
@@ -707,8 +707,8 @@ the deck.
   The remedy is **`output all`** in place of `output snapshot`. `all` re-reports every group
   it has ever seen, and reports an emptied one with a **null** aggregate — which is exactly
   the message a dashboard needs. The grouping is kept; only the reporting policy changes.
-  Both halves are verified: see `reference/verified-output.md` for the silence under
-  `snapshot`, and `reference/verified-output-firealarm.md` for the null under `all`.
+  Both halves were run: the silence under `snapshot` and the null under `all` are
+  observed behaviour, not predictions.
 
   One caveat worth stating out loud: `all` reports every group **ever seen**, so the report
   grows with the number of distinct keys and never shrinks. Two directions, fine. A fleet,
@@ -742,8 +742,7 @@ Predict how many rows it produces on this trace before you run it.
 
 ## Annex — the constructs in four lines each
 
-One run, three constructs, two schemas and four events. The full transcript is in
-`reference/verified-output.md`.
+One run, three constructs, two schemas and four events.
 
 ```
 create schema HallCall(floor int, dir string);

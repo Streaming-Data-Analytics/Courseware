@@ -1195,8 +1195,8 @@ The previous version of this module stated **no expected output at all** — eve
 is new. Emanuele executed every statement on the EPL online tool; Claude designed the runs,
 restructured the material and wrote the text. Every transcript was extracted from a recorded
 run by script rather than retyped, and every statement was generated from the same source as
-`everyandguard.epl`, so the two cannot drift apart. The ground truth is in
-`reference/verified-output-lecture5.md`.
+`everyandguard.epl`, so the two cannot drift apart. **No output in this module was predicted:**
+every row above was read off a run.
 
 The opening section was rewritten once more after that, on the owner's challenge. It had said
 *a pattern is a finite-state machine*, which is false and which the module's own transcripts

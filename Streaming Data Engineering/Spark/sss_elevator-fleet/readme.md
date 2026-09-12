@@ -177,11 +177,14 @@ every a=DoorOpened
      where timer:within(20 sec)
 ```
 
-Structured Streaming has no `->`. The same question becomes a **stream-stream self-join**
-with a watermark on each side and the ordering written by hand as a temporal predicate. It
-works, it is more verbose, and it is less expressive — and you will have written both, which
-is the operational difference between a CEP engine and a distributed stream processor with no
-theory required.
+Structured Streaming has no `->`. That much is not news by this point: lecture 9 made exactly
+this move on the fire alarm, and stated the equivalence outright — a stream-stream join with
+temporal constraints against `every x=A -> every B(id=x.id) where timer:within(2 minutes)`.
+What is new here is that you write one yourself, for a rule you wrote in EPL three lectures
+ago: a **stream-stream self-join** with a watermark on each side and the ordering written by
+hand as a temporal predicate. It works, it is more verbose, and it is less expressive — and
+you will have written both, which is the operational difference between a CEP engine and a
+distributed stream processor with no theory required.
 
 Three things the EPL version never had to say, and the notebook names each one: `b.ts > a.ts`
 (a join is symmetric, `->` is not), two separate watermarks (the bound on state and the
@@ -197,7 +200,8 @@ And **`numRowsDroppedByWatermark` does not count events.** It counts state rows,
 `(window, key)` group: several dropped events for the same unit in the same minute are
 pre-aggregated inside the batch and reported as **one**. Read it as "events lost" and you
 under-count, by a factor that depends on how the backlog happens to be spread. That was
-measured, not assumed — the check is in `reference/verified-output-lecture10.md`.
+measured, not assumed: the same six late events were spread over one, two and three units,
+and the metric reported 1, 2 and 3.
 
 ## On the outputs in these notebooks
 
@@ -214,8 +218,9 @@ idle batch, and a sum over a `memory` sink in `update` mode counted intermediate
 if they were events. Both are now fixed, and both earned a section of their own, because the
 mistakes teach more than the numbers do.
 
-The ground truth, including the four checks that came out differently from what was
-predicted, is in `reference/verified-output-lecture10.md`.
+**Nothing here is a prediction.** Where a result contradicted what was expected — the
+dropped-row metric, the denominator of the rate, and the two cells above — the contradiction
+was tested rather than argued, and what the test said is what this module now says.
 
 ## Acknowledgements
 
