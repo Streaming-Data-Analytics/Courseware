@@ -1,9 +1,4 @@
 ---
-# Re-pinned 13-set-2026 so that every image resolves on arm64 as well as amd64:
-# docker then pulls the variant of the host and nothing is emulated. Checked
-# against the registry, tag by tag — the standalone confluentinc/ksqldb-* images
-# are amd64 only, and the same ksqlDB inside Confluent Platform, cp-ksqldb-*, is
-# not. See reference/tools/fix_compose.py for the table of what was verified.
 version: '2'
 
 services:
@@ -49,7 +44,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://broker:9092"
 
   ksqldb-server:
-    image: confluentinc/cp-ksqldb-server:7.4.0
+    image: confluentinc/ksqldb-server:0.29.0
     hostname: ksqldb-server
     container_name: ksqldb-server
     depends_on:
@@ -63,7 +58,7 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
 
   ksqldb-cli:
-    image: confluentinc/cp-ksqldb-cli:7.4.0
+    image: confluentinc/ksqldb-cli:0.29.0
     container_name: ksqldb-cli
     depends_on:
       - broker
