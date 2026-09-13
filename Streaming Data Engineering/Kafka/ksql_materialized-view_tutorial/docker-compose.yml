@@ -1,9 +1,14 @@
 ---
+# Re-pinned 13-set-2026 so that every image resolves on arm64 as well as amd64:
+# docker then pulls the variant of the host and nothing is emulated. Checked
+# against the registry, tag by tag — the standalone confluentinc/ksqldb-* images
+# are amd64 only, and the same ksqlDB inside Confluent Platform, cp-ksqldb-*, is
+# not. See reference/tools/fix_compose.py for the table of what was verified.
 version: '2'
 
 services:
   mysql:
-    image: mysql:8.0.19
+    image: mysql:8.0.36
     hostname: mysql
     container_name: mysql
     ports:
@@ -17,7 +22,7 @@ services:
       - "./config/mysql/custom-config.cnf:/etc/mysql/conf.d/custom-config.cnf"
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:6.1.0
+    image: confluentinc/cp-zookeeper:7.4.0
     hostname: zookeeper
     container_name: zookeeper
     ports:
@@ -27,7 +32,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   broker:
-    image: confluentinc/cp-enterprise-kafka:6.1.0
+    image: confluentinc/cp-enterprise-kafka:7.4.0
     hostname: broker
     container_name: broker
     depends_on:
@@ -45,7 +50,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:6.1.0
+    image: confluentinc/cp-schema-registry:7.4.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -58,7 +63,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
 
   ksqldb-server:
-    image: confluentinc/ksqldb-server:0.15.0
+    image: confluentinc/cp-ksqldb-server:7.4.0
     hostname: ksqldb-server
     container_name: ksqldb-server
     depends_on:
@@ -91,7 +96,7 @@ services:
       KSQL_CONNECT_PLUGIN_PATH: "/usr/share/kafka/plugins"
 
   ksqldb-cli:
-    image: confluentinc/ksqldb-cli:0.15.0
+    image: confluentinc/cp-ksqldb-cli:7.4.0
     container_name: ksqldb-cli
     depends_on:
       - broker

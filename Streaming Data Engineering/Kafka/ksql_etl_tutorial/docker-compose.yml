@@ -1,4 +1,14 @@
 ---
+# Two images here were amd64 only and have been moved to the nearest tag that
+# is not: elasticsearch 7.6.2 -> 7.17.28 (same 7.x line) and debezium/postgres
+# 12 -> 16 (a PostgreSQL major, on a database this tutorial creates from
+# scratch at every run). Both are version changes, not renames: this module has
+# to be run once before its output is trusted.
+# Re-pinned 13-set-2026 so that every image resolves on arm64 as well as amd64:
+# docker then pulls the variant of the host and nothing is emulated. Checked
+# against the registry, tag by tag — the standalone confluentinc/ksqldb-* images
+# are amd64 only, and the same ksqlDB inside Confluent Platform, cp-ksqldb-*, is
+# not. See reference/tools/fix_compose.py for the table of what was verified.
 version: '2'
 
 services:
@@ -15,7 +25,7 @@ services:
     command: --replSet my-replica-set --bind_ip_all
 
   postgres:
-    image: debezium/postgres:12
+    image: debezium/postgres:16
     hostname: postgres
     container_name: postgres
     ports:
@@ -29,7 +39,7 @@ services:
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
 
   elastic:
-    image: elasticsearch:7.6.2
+    image: elasticsearch:7.17.28
     hostname: elastic
     container_name: elastic
     ports:
@@ -39,7 +49,7 @@ services:
       discovery.type: single-node
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.0
+    image: confluentinc/cp-zookeeper:7.4.0
     hostname: zookeeper
     container_name: zookeeper
     ports:
@@ -49,7 +59,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   broker:
-    image: confluentinc/cp-kafka:7.0.0
+    image: confluentinc/cp-kafka:7.4.0
     hostname: broker
     container_name: broker
     depends_on:
@@ -67,7 +77,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.0.0
+    image: confluentinc/cp-schema-registry:7.4.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -83,7 +93,7 @@ services:
 
 
   ksqldb-server:
-    image: confluentinc/ksqldb-server:0.23.1
+    image: confluentinc/cp-ksqldb-server:7.4.0
     hostname: ksqldb-server
     container_name: ksqldb-server
     depends_on:
@@ -113,7 +123,7 @@ services:
       KSQL_CONNECT_PLUGIN_PATH: "/usr/share/kafka/plugins"
 
   ksqldb-cli:
-    image: confluentinc/ksqldb-cli:0.23.1
+    image: confluentinc/cp-ksqldb-cli:7.4.0
     container_name: ksqldb-cli
     depends_on:
       - broker
