@@ -34,10 +34,13 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      # off on purpose: the simulator notebooks create their topics explicitly,
-      # and a topic that springs into existence because a name was mistyped is a
-      # confusing way to lose an afternoon
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # ON here, unlike every other module of this course, because these
+      # notebooks have no topic-creation cell: they list the topics and then
+      # produce, and the topic has always come into existence on the first
+      # produce. Turning it off — which is what the other modules do, where the
+      # partition count is part of the lesson — makes the first produce fail with
+      # _UNKNOWN_TOPIC and Spark with UnknownTopicOrPartitionException.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
   notebook:
     image: quay.io/jupyter/pyspark-notebook:spark-3.5.0
