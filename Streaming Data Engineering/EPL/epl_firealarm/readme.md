@@ -673,7 +673,7 @@ something neither says alone: **a time-driven window cannot be starved, a count-
 can.** `Q.3.9` keeps reporting because the clock keeps arriving. `Q.3.10` waits for two
 readings that never come, and two real measurements are silently stranded.
 
-### Q.3.11 — reporting more often than the window slides
+### Q.3.11 — Implementing Hopping Windows by controlling the output
 
 ```
 @name('Q.3.11')
