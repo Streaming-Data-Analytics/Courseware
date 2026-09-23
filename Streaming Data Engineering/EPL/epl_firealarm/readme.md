@@ -821,6 +821,38 @@ driven by an arrival sits in the second.
 Three behaviours, all executed, none of them derivable from the others. A fourth is waiting in
 part 2, and it is the one you want when a dashboard is on the other end.
 
+## 7. When output is produced with no `output` clause - part 1's summary
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>no <code>group by</code></th>
+      <th>with <code>group by</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>#length_batch(N)</code></td>
+      <td colspan="2" align="center">After N new elements are inserted</td>
+    </tr>
+    <tr>
+      <td><code>#length(N)</code></td>
+      <td colspan="2" align="center">When new event inserted</td>
+    </tr>
+    <tr>
+      <td><code>#time_batch(N ...)</code></td>
+      <td align="center">After N time units</td>
+      <td align="center">When window gets updated<br>(see <code>Q.3.9probe</code>)</td>
+    </tr>
+    <tr>
+      <td><code>#time(N ...)</code></td>
+      <td>When new event inserted</td>
+      <td align="center">When window gets updated<br>(see it by writing a <code>Q.3.7probe</code> query!)</td>
+    </tr>
+  </tbody>
+</table>
+
 ---
 
 # Part 2 — lecture 4: when does a query speak, and what does it say?
