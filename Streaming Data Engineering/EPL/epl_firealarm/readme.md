@@ -1224,6 +1224,43 @@ Part 1's table, now finished:
 Six behaviours. Every one of them was executed to write this table, and no two of them can be
 guessed from the others.
 
+## 5. When and what output is produced - part 2's summary
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>when output is produced</th>
+      <th>what output is produced<br>with no <code>group by</code></th>
+      <th>what output is produced<br>with <code>group by</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>first</code></td>
+      <td align="center">As soon as event arrives</td>
+      <td align="center">The first one produced</td>
+      <td align="center" rowspan="2"><i>not covered here</i></td>
+    </tr>
+    <tr>
+      <td><code>last</code></td>
+      <td align="center" rowspan="3">At boundary</td>
+      <td align="center">The last one produced</td>
+    </tr>
+    <tr>
+      <td><code>all</code></td>
+      <td align="center">All new results since the last output</td>
+      <td align="center">Results (*) for each group seen so far</td>
+    </tr>
+    <tr>
+      <td><code>snapshot</code></td>
+      <td align="center">Every result seen so far in the window</td>
+      <td align="center">Results (*) for each group updated<br>since the last output</td>
+    </tr>
+  </tbody>
+</table>
+(*) : aggregation states are reset at every new output
+
 ---
 
 # Part 3 — lecture 5: patterns, and the running example answered
