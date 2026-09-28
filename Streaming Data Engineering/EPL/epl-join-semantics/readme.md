@@ -99,6 +99,10 @@ Assumption, stated because it is visible in the numbers: the trace moves a car a
 floor per second. That is fast for a ten-storey building. Nothing in any query depends on
 it — the movements are there only so that the trace is not physically absurd.
 
+Drawn out, one lane per stream:
+
+![The trace: hall calls and door openings on one timeline](img/trace.png)
+
 ### The seven scenarios
 
 Each takes its own key, so no two ever interfere.
@@ -125,6 +129,10 @@ join against. Here both windows are nine seconds.
 #### Q.6.1
 
 Which hall calls were served within nine seconds.
+
+> **In words.** Tell me every hall call and every door opening that agree on floor and
+> direction and happen **within nine seconds of each other**, at the moment the second of the
+> two arrives — whichever of the two that is.
 
 ```
 @name('Q.6.1')
@@ -175,9 +183,15 @@ has no identity, and pressing it twice produces two events that are equal in eve
 At 08:00:09 there are again two rows, but this time they differ by car: one call, two cars,
 which is bunching.
 
+![Q.6.1 — inner join over two nine-second windows](img/q61.png)
+
 #### Q.6.2
 
 Every hall call, with its service on the right when there is one.
+
+> **In words.** Tell me about every hall call as soon as it is pressed — with the door that
+> served it if one has already arrived, and with a blank otherwise — and tell me again when
+> the door does arrive.
 
 ```
 @name('Q.6.2')
@@ -256,6 +270,8 @@ This has a consequence worth stating before the lab asks about it: **`d=(null)` 
 "not served"**. Six rows carry a null, and only one of them, (7, UP), is a call that was
 really never answered. The others are calls seen a moment too early.
 
+![Q.6.2 — left outer join: the dashed boxes are the rows with `d=(null)`](img/q62.png)
+
 ## 2. Table to table joins
 
 EPL offers three ways to build a table out of an unbounded stream:
@@ -276,6 +292,10 @@ A materialized view has no time window. State does not expire — it is only ove
 #### Q.6.3
 
 The same inner join as Q.6.1, over two materialized views instead of two time windows.
+
+> **In words.** Keep the latest press for each call and the latest door opening for each
+> floor-and-direction, and tell me whenever the two sides match — **no matter how much time
+> has passed** between them.
 
 ```
 @name('Q.6.3')
@@ -339,7 +359,16 @@ stream into a keyed view cost **two words in a from-clause**. Not every engine g
 that. Spark Structured Streaming has no such construct: its own *unbounded table* is the
 input abstraction, not a view keyed on anything, and *one row per key* has to be built by
 hand — as a stateful aggregation, or as a custom stateful operator that keeps the state
-itself. It works, and it is a great deal more code. We will come back to this when we leave
+itself.
+
+Drawn, the two views make their own argument. Every column is the view after that event, the
+filled cell is the row just written and the outlined ones were already there — so the call at
+(4, UP) is visibly still in the view at 08:00:11, and the double press at 08:00:06 visibly
+replaces rather than adds:
+
+![Q.6.3 — inner join over two `#unique` views](img/q63-tables.png)
+
+It works, and it is a great deal more code. We will come back to this when we leave
 one building for a fleet of them.
 
 ## 3. Stream to table joins
@@ -359,6 +388,10 @@ each new call is joined against the current position of every car.
 #### Q.6.4
 
 For each call as it arrives, had this floor and direction already been served?
+
+> **In words.** Every time a button is pressed, look up whether that floor and direction have
+> already been served, and tell me only if they have — **a door opening, on its own, never
+> produces anything**.
 
 ```
 @name('Q.6.4')
@@ -387,6 +420,11 @@ served, but their service arrived later, and a passive stream cannot trigger any
 calls at (7, UP) — and the door at (1, DOWN) — never had a counterpart at all. A
 unidirectional join cannot distinguish those two situations, because it only ever looks once.
 
+The picture is asymmetric on purpose — blobs on the side that arrives, columns on the side
+that sits — and that asymmetry *is* `unidirectional`:
+
+![Q.6.4 — a stream against a view, with only the stream triggering](img/q64-stream-table.png)
+
 ## 4. Named windows
 
 Every window so far has been written inline, inside a from-clause. Such a window is **scoped
@@ -407,6 +445,9 @@ the end of this section.
 
 The declaration. A named window is created from an event type, with the data window that
 governs it.
+
+> **In words.** Keep one pending call per floor-and-direction, and tell me every time a row
+> **enters the window or leaves it**.
 
 ```
 @name('Q.6.5')
@@ -461,6 +502,9 @@ identity, and no output of its own.
 
 The feed. A named window is empty until something writes to it.
 
+> **In words.** Send every press to the pending-calls window, and tell me about each one you
+> sent — **whatever the window then does with it**.
+
 ```
 @name('Q.6.6')
 insert into PendingCall select * from HallCall;
@@ -511,6 +555,9 @@ available, and it costs one timestamp.
 #### Q.6.7
 
 A third statement, reading the window by name. Note that it never mentions `HallCall`.
+
+> **In words.** Tell me the floor and direction of everything that **enters** the
+> pending-calls window, reading it by name and never naming where its rows came from.
 
 ```
 @name('Q.6.7')
