@@ -49,8 +49,10 @@ accepting place. It is drawn once and it never changes — it is what you wrote.
 
 The **tokens** are what runs on it. A token is one partial match in progress: it sits on a
 place, and it carries **its own bindings** for `x`, `y`, `z` and its own clock. Every arriving
-event is offered to every token. A token that reaches the accepting place **fires** — it emits
-one row, made of the bindings it was carrying, and it is gone.
+event is offered to every token. A token that reaches the accepting place — the double circle
+marked **match** — **fires**: it emits one row, made of the bindings it was carrying, and it is
+gone. A token that reaches the dashed red circle marked **dead** ends the other way, producing
+nothing. Those two circles are the only two ways a token can end.
 
 *Token* and **instance** mean the same thing below; the first is the better word when what
 matters is how many are on the board, the second when what matters is what one of them is
@@ -92,8 +94,8 @@ That is the whole difference, and section 2 measures it.
 |---|---|
 | filled dot | where a token is put down |
 | plain circle | a place a token can wait on |
-| double circle | the accepting place: a token that gets here emits a row and is gone |
-| dashed red circle | where the engine takes a token off the board — **silently** |
+| double circle, `match` | the accepting place: a token that gets here emits a row and is gone |
+| dashed red circle, `dead` | where the engine takes a token off the board — **silently** |
 | self-loop | an `every`: the edge that puts down a token without picking one up |
 | dashed grey edge | a token replaced after a match, not a transition on an event |
 
