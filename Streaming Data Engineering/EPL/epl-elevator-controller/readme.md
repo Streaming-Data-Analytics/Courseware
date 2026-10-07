@@ -245,6 +245,13 @@ of the row it is holding.
 Last lecture's assignment asked for the calls that were never served, written as a left outer
 join. If you did it, you found that the answer is uncomfortable: every call produces a row
 with `null` on the right when it arrives, so "has a null" does not mean "was never served".
+
+If you wrote the full outer join as well, you saw the same thing in a harder form. Most of
+its null-sided rows are simply **not yet** — a match for them turns up a second or two later,
+and the first row is never retracted. One pair is split by the nine-second window although
+the call *was* answered, so that row says something true about your window and something
+false about the lift. Out of everything it reports with a null, very little is a failure.
+
 A join can only tell you **what the world looks like right now**. It cannot tell you that
 something *failed to happen*.
 
@@ -425,14 +432,14 @@ create expression costOf {
 insert into CarBid
 select n.floor as floor, n.dir as dir, c.car as car,
        costOf(c.floor, c.dir, n.floor, n.dir) as cost
-from NewCall as n unidirectional, CarStatus as c;
+from NewCall as n unidirectional inner join CarStatus as c;
 
 // the selection policy: the only statement students rewrite in the exercises
 @name('dispatch')
 insert into Assigned
 select n.floor as floor, n.dir as dir, c.car as car,
        costOf(c.floor, c.dir, n.floor, n.dir) as cost
-from NewCall as n unidirectional, CarStatus as c
+from NewCall as n unidirectional inner join CarStatus as c
 order by costOf(c.floor, c.dir, n.floor, n.dir) asc
 limit 1;
 
@@ -479,6 +486,54 @@ from pattern [
        where timer:within(20 sec)
 ];
 ```
+
+### How to read it
+
+Thirteen statements is more than fits in the head at once, so here they are drawn as what
+they are: **every box is a statement, every arrow is a stream**. Dashed grey means a passive
+read — a statement looking inside a window without being triggered by it — and the one red
+arrow is the only thing in the program that takes rows out.
+
+![The controller as a dataflow: every box is a statement, every arrow a stream](img/controller-dataflow.png)
+
+Five things that picture says and the listing does not.
+
+**An arrow carries the name of a stream, never of an event type.** What leaves
+`feed-car-status` is `CarStatus`, although the rows have the `CarMoved` type: `insert into X`
+names the stream `X`, while `as CarMoved` in the `create window` declares the shape of its
+rows. Here the two happen to coincide, which is exactly why they are easy to confuse.
+
+**`insert into CarStatus select * from CarMoved` is not a rename.** It is the only thing that
+puts rows in the window. `create window ... as CarMoved` is a declaration of type, not a
+subscription: without the feed, `CarStatus` stays empty for ever, the join in `dispatch` finds
+no car, and nothing is ever assigned. The statement reads like a rename because its
+destination is declared somewhere else — point it at a name no `create window` mentions and it
+really becomes one, writing to a brand-new stream that holds nothing. `insert into` cannot
+tell the difference; the run can. At 08:00:06 `feed-car-status` reports one Insert while
+`win-car-status` reports an Insert **and** a Remove, and both are right: the feed sends a row,
+and what the window does with it is the window's business.
+
+**A named window is state and stream at once.** It holds rows — which is why `bids` and
+`dispatch` can look inside it — and it also emits, on two faces, insert and remove. That is
+what `observe-pending` listens to, and it is the half an inline window can never offer,
+because it has no name to listen to.
+
+**Every statement emits; what differs is where the rows go.** An `insert into` emits into a
+named stream that another statement is allowed to read — `CarBid`, `Assigned` and `Starved`
+are named and unread, which is a design fact and not a dead end — while a plain `select`
+delivers to the listener, where the rows have no name and nothing inside the engine can pick
+them up. So `observe-pending` having nothing downstream does not make it a sink, and
+`serve-call` emits too: the rows it deleted, reported as Insert.
+
+**Not all of this is the controller.** The blue chain is what decides which car goes. The
+green statements watch the *building* — `starvation`, `wait-time` and `wait-trend`,
+`bunching` — and not one of them changes a decision; they are what an operator reads, and
+they are the part that survives into production. The grey two watch the *program*:
+`observe-pending` so the window's contents can be seen, `bids` so the costs can be. `bids` is
+the one worth pausing on. Nothing reads `CarBid`, and `dispatch` computes the same join a
+second time rather than consuming it — delete `bids` and the controller behaves identically.
+Which leaves a fair question to carry into the exercises: why does the controller not consume
+the stream it has just produced, and what would have to change in `dispatch` for it to?
 
 ### The run
 
@@ -722,7 +777,11 @@ the deck.
   the engine configuration, and it is not in the online tool. Which is the theme of this whole
   course in one line: EPL's semantics are defined by the implementation, not by a document.
 
-## Lab
+## Lab — optional
+
+Both of these are **optional**. Do them if you want to; the solution is underneath each one,
+folded away, so nothing is lost if you only read it. They are the two loose ends the run
+leaves behind, and each one is worth more as an attempt than as a reading.
 
 ### Q.7.1
 
@@ -732,6 +791,64 @@ batch order. Assume `CarMoved` gains a `load int` field.
 Then write the trace that proves your change works — a trace on which the old `dispatch` and
 the new one choose differently. Bring the trace, not the query: anybody can write the query.
 
+<details>
+<summary>solution</summary>
+
+The query is one clause:
+
+```
+@name('dispatch')
+insert into Assigned
+select n.floor as floor, n.dir as dir, c.car as car,
+       costOf(c.floor, c.dir, n.floor, n.dir) as cost
+from NewCall as n unidirectional inner join CarStatus as c
+order by costOf(c.floor, c.dir, n.floor, n.dir) asc, c.load asc
+limit 1;
+```
+
+The trace is the part that takes thought, and the reason is in the question. A tie is broken
+by **batch order**, and batch order is not in the language — so you cannot reason out which
+car the old statement picks. You have to run it, see which one it picked, and only then
+choose the loads that make the new one disagree. That is the whole point of asking for the
+trace rather than the query.
+
+You do not need a new trace. **This module's trace already contains the tie**: at 08:00:36
+both cars are at floor 3 heading down, both bid 0, and the recorded run shows the old
+`dispatch` picking **B**. So add a `load int` to the schema, give B the higher load, and
+leave everything else alone:
+
+```
+create schema CarMoved(car string, floor int, dir string, load int);
+```
+
+with every `CarMoved` of A carrying `load=5` and every `CarMoved` of B carrying `load=9`.
+
+The other two assignments do not move — at 08:00:01 B wins on 6 against 101, at 08:00:11 A
+wins on 2 against 4, and neither is a tie. Only the third changes:
+
+```
+* At: 2001-01-01 08:00:01.000
+   * Statement: dispatch
+      * Insert
+         * Assigned={floor=3, dir='DOWN', car='B', cost=6}
+* At: 2001-01-01 08:00:11.000
+   * Statement: dispatch
+      * Insert
+         * Assigned={floor=5, dir='UP', car='A', cost=2}
+* At: 2001-01-01 08:00:36.000
+   * Statement: dispatch
+      * Insert
+         * Assigned={floor=3, dir='DOWN', car='A', cost=0}
+```
+
+One row out of three, and it is the only one that was ever undetermined. `bids` at 08:00:36
+emits B first and A second — that is the batch order the old statement was silently
+following. Worth saying out loud: the old statement was not *wrong* there, it was
+**unspecified**. The second sort key does not improve a decision, it turns a non-decision
+into one.
+
+</details>
+
 ### Q.7.2
 
 `Assigned` is a promise and `Starved` is a failure, and nothing connects them. Write a
@@ -739,6 +856,77 @@ statement that reports a call that was **assigned and then starved anyway**, nam
 that was promised.
 
 Predict how many rows it produces on this trace before you run it.
+
+<details>
+<summary>solution</summary>
+
+The obvious statement is a followed-by:
+
+```
+@name('Q.7.2-naive')
+select a.car as promised, a.floor as floor, a.dir as dir
+from pattern [ every a=Assigned -> s=Starved(floor=a.floor, dir=a.dir) ];
+```
+
+and it produces **three** rows:
+
+```
+* At: 2001-01-01 08:00:56.000
+   * Statement: Q.7.2-naive
+      * Insert
+         * Q.7.2-naive-output={promised='A', floor=5, dir='UP'}
+* At: 2001-01-01 08:01:21.000
+   * Statement: Q.7.2-naive
+      * Insert
+         * Q.7.2-naive-output={promised='B', floor=3, dir='DOWN'}
+         * Q.7.2-naive-output={promised='B', floor=3, dir='DOWN'}
+```
+
+Two of them are the same row, and **one of the two is a lie**. There were two promises for
+(3, DOWN) — at 08:00:01 and at 08:00:36 — and the first of them *was kept*: car B opened its
+doors going down at 08:00:26. But nothing ever closed that pattern instance, so it was still
+sitting there, armed, when a starvation for the same floor and direction arrived fifty-five
+seconds later. `every` opens an instance per event and an unbounded `->` never closes one.
+
+The fix is the guard from the lecture on patterns, and it reads like the sentence you would
+say: assigned, then starved, **and no door opened in between**.
+
+```
+@name('Q.7.2')
+select a.car as promised, a.floor as floor, a.dir as dir
+from pattern [
+  every a=Assigned -> ( s=Starved(floor=a.floor, dir=a.dir)
+                        and not DoorOpened(floor=a.floor, servedDir=a.dir) )
+];
+```
+
+```
+* At: 2001-01-01 08:00:56.000
+   * Statement: Q.7.2
+      * Insert
+         * Q.7.2-output={promised='A', floor=5, dir='UP'}
+* At: 2001-01-01 08:01:21.000
+   * Statement: Q.7.2
+      * Insert
+         * Q.7.2-output={promised='B', floor=3, dir='DOWN'}
+```
+
+**Two** rows. The door at 08:00:26 kills the instance opened at 08:00:01, and the two that
+survive are the two calls that really were promised and never served.
+
+One last thing, if you did `Q.7.1` first. With the second sort key in `dispatch`, the call at
+08:00:36 goes to **A** instead of B, and the two rows of the naive answer then name
+*different cars*: `promised='B'` from the promise that was kept, `promised='A'` from the one
+that was not. The lie stops looking like a duplicate and starts looking like what it is — the
+query crediting a car for a failure that belonged to the other one.
+
+A bound on the wait — `where timer:within(...)` — would also remove the false positive, and
+it is the worse answer. `Starved` arrives exactly forty-five seconds after the call, so the
+bound would have to be forty-five, and the result would then depend on whether `timer:within`
+treats its own boundary as inside or outside. The `and not` answer does not depend on a
+boundary at all: it depends on the event that actually means the promise was kept.
+
+</details>
 
 ## Annex — the constructs in four lines each
 
