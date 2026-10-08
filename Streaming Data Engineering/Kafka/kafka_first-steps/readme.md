@@ -18,7 +18,7 @@ fleet's `elevator-events` has 6, and that number is a different lesson.
 |---|---|---|
 | 1 | a topic is a **set of partitions**, and the count is the maximum parallelism | *Reconciling the two views*, *A physical view of topic partition* |
 | 2 | with no key the partition is **random per batch**, not round-robin per message — so a fast producer concentrates and a slow one spreads; with a key it is `hash(key) % n` | *Reconciling the two views* |
-| 3 | a **consumer group** splits the partitions between its members, one reader each | *Topic partitioning invites distributed consumption*, *Consumer Group and scalability* |
+| 3 | a **consumer group** splits the partitions between its members, one reader each — and a member beyond the partition count is a spare, idle until another leaves | *Topic partitioning invites distributed consumption*, *Consumer Group and scalability*, *Consumer Group and fault tolerance* |
 | 4 | a group is a **cursor, not a queue**: reading does not consume | *Log retention* |
 | 5 | the **encoding** is a factor in MB/s: the same event is 115 bytes as JSON and 18 as Avro | *Data/Message matters!* |
 
@@ -77,15 +77,22 @@ module and the Spark ones.
 | *With no key, the client spreads them itself* | produce 9 door events fast, then the same 9 at 30 ms apart, and count the partition switches in each | how will nine spread over three? and what changes with a pause? |
 | *With a key, the partition is a function of the key* | the same events for three units, this time keyed by `unitId` | do three keys give three partitions? |
 | *One consumer in a group reads every partition* | one consumer in group `dashboard` | how many of the 27 does it get? |
-| *Two consumers in the same group split the partitions* | a second consumer joins and the group rebalances | how do 3 partitions divide by 2? and what about a 4th consumer? |
+| *Two consumers in the same group split the partitions* | a second consumer joins and the group rebalances | how do 3 partitions divide by 2? |
+| *The ceiling, and the member that is there for later* | a third consumer, then a fourth that gets nothing, then one of the busy three is closed | what does a 4th consumer do when there are only 3 partitions — and what happens to it when a member leaves? |
 | *A group is a cursor, not a queue* | a brand-new group reads from `earliest` | how many messages does it see? |
 | *The same event, in Avro* | encode one door event as JSON and as Avro, change the schema and watch it shrink again, then compare the batches of a thousand of each | the same event is 115 bytes as JSON — how small in Avro? |
 | *Clean up* | delete the three topics | — |
 
-The one thing that can look like a failure and is not: after the second consumer joins,
-the group **rebalances**, and that takes a few seconds during which both consumers hold
-nothing. The notebook polls both of them until it settles — a member that does not poll is a
-member the broker does not consider present.
+The one thing that can look like a failure and is not: every time the membership changes,
+the group **rebalances**, and that takes a few seconds during which the consumers hold
+nothing. The notebook keeps polling all of them until it settles — a member that does not
+poll is a member the broker does not consider present.
+
+The departure in the last of those sections is a `close()`, which is a **polite** exit: the
+member tells the group it is leaving and the rebalance starts at once. A crash says nothing,
+and the group only notices after `session.timeout.ms` — 45 seconds by default. Worth keeping
+apart, because it is the difference between "the spare consumer makes failover instant" and
+"it makes failover cost one timeout instead of one deployment".
 
 ## 3. Stop
 
