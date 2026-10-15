@@ -91,7 +91,7 @@ Sections are named by the headings in the notebooks, so you can always tell wher
 
 | # | notebook | run this section | what you should see |
 |---|---|---|---|
-| 1 | simulator | *The client is already installed* → *The two topics, and why they are two* → *The fleet*, down to the producer. **Stop at the heading `1) Background traffic`** | `confluent-kafka 2.5.0`; `elevator-events` with **6** partitions and `elevator-faults` with **1**; then the four sections of the trace: **384** background events over `08:00:00..08:05:59`, 6 bunching, 6 straggler, 4 faults, `units 24, regions 3` |
+| 1 | simulator | *The client is already installed* → *The two topics, and why they are two* → *The fleet*, down to the producer. **Stop at the heading `1) Background traffic`** | `confluent-kafka 2.5.0`; `elevator-events` with **6** partitions and `elevator-faults` with **1**; then the sections of the trace: **384** background events over `08:00:00..08:05:59`, 6 bunching, 6 straggler, 20 crowd, 4 faults, `units 24, regions 3` |
 | 2 | monitoring | *The session, and the Kafka connector* → *The static side* → *Q.10.1 — how many doors, per unit, per minute* | `spark 3.5.0 / scala 2.12`, the schema of `doors`, the reference table — and **an empty result table**. Correct: nothing has been produced yet |
 | 3 | simulator | *1) Background traffic — six minutes of fleet time*, both cells | six lines, one per minute of fleet time, then the four faults |
 | 4 | monitoring | the `SELECT` under *Go to the simulator: section 1)* — **that cell only**, not the one that starts the query — then *The same minute can appear twice, and it is not a bug* | one row per unit per minute: EU units at **1** door in `08:00`, JP units at **6**. Rush hour is local, and it is already visible here |
@@ -102,8 +102,11 @@ Sections are named by the headings in the notebooks, so you can always tell wher
 | 9 | monitoring | *Q.10.4 — the unit that reconnects, and the events nobody misses*, including the watermark cell. Then **stop and predict** | the current watermark, and a question: which of six replayed events survive? |
 | 10 | simulator | *3) A unit that reconnects with a backlog* | 6 events, with event times already in the past |
 | 11 | monitoring | the `SELECT` under *Go to the simulator: section 3)*, the metrics cell, then *Two things to take away, and the second is a trap* | some minutes counted, at least one missing entirely, and a metric that does **not** mean what it says |
-| 12 | monitoring | *The sizing arithmetic* → *Check your denominator before you believe the number* → *The counterintuitive part* | two rates computed from the same run, 63% apart. Both are correct; only one sizes a cluster |
-| 13 | both | *Clean up* in the monitoring notebook, then the last cell of the simulator | the three queries stop; the two topics are deleted |
+| 12 | monitoring | *`Q.10.3` again — n openings at one floor*, down to the `SELECT`. Then **stop and predict** the three counts | a table and a claim: EPL would say 3, 5 and 9; the join should say 4, 9 and 25 |
+| 13 | simulator | *4) One floor, a crowd*, **both** cells — the crowd and the two doors that move the clock on | 20 events, then 2. The second cell is not optional: in append mode the counts stay empty without it |
+| 14 | monitoring | the `SELECT` under *Go to the simulator: section 4)* | **4, 9, 25** at floors 1, 2 and 3. A followed-by grows with the openings; a join grows with their square |
+| 15 | monitoring | *The sizing arithmetic* → *Check your denominator before you believe the number* → *The counterintuitive part* | two rates computed from the same run, 63% apart. Both are correct; only one sizes a cluster |
+| 16 | both | *Clean up* in the monitoring notebook, then the last cell of the simulator | the three queries stop; the two topics are deleted |
 
 ### the notebooks ship with their outputs
 
@@ -207,6 +210,15 @@ the choice of key in this module is not a detail but the lecture's own question.
 | `elevator-events` | 6 | `unitId` | frequent, low value per event |
 | `elevator-faults` | 1 | `unitId` | rare, high value, its own retention and its own consumer SLA |
 
+**Nothing in this module reads `elevator-faults`.** The four faults are produced so that the
+two-topic decision is real and inspectable rather than asserted — you can go and look at a
+topic with one partition standing next to one with six. One partition is also one consumer,
+which is lecture 8's ceiling seen from the producer's side. Giving the faults a query of
+their own — *did the unit that faulted show bunching in the minutes before?* — is a join
+between a tiny stream and a huge one, and that is a different sizing problem from anything
+in this module.
+
+
 Two topics because the domain hands them to us, not because of volume: different retention,
 different partition counts, different consumer SLAs. The reference table that `Q.10.2` joins
 against maps each `unitId` to its `region` — 24 rows that do not move, a plain DataFrame and
@@ -237,6 +249,7 @@ isolates exactly one thing:
 | 1 — background | six minutes, three regional peaks, one flat fleet total |
 | 2 — bunching | one real bunching, one pair too far apart in time, one pair in opposite directions |
 | 3 — straggler | a unit that reconnects with a backlog of events the watermark has already passed |
+| 4 — crowd | three floors with 4, 6 and 10 openings, so the growth of the join's output can be counted rather than argued |
 
 If `Q.10.3` returns more than one row, something is wrong — and that is the point of building
 the trace that way. The EPL modules of this course use the same discipline for the same
