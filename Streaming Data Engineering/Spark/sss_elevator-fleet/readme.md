@@ -143,6 +143,83 @@ metric is the trap — ask for a number before revealing it.
 docker-compose down
 ```
 
+## The domain, in one place
+
+Six lectures have been adding to the same vocabulary, and this is the module where most of it
+is on screen at once. Nothing below is new. It is here so that a column header in an output
+never has to be guessed.
+
+### The things, smallest to largest
+
+| name | what it identifies | values |
+|---|---|---|
+| `car` | a cabin — the box people stand in | `A`, `B` |
+| `floor` | a landing | `0` … `9` |
+| `unitId` | one installation: a controller and the cars it dispatches — exactly what the EPL controller of lecture 7 controls | `EU-001` … `JP-008` |
+| `bank` | a group of units inside one building, serving a range of floors | `low`, `high` — in [the one-building module](../sss_elevator_one_building/readme.md), not here |
+| `region` | where a unit is, named by its time zone | `Europe/Milan`, `America/New_York`, `Asia/Tokyo` |
+
+**A unit holds two cars**, `A` and `B`, and that is what makes `Q.10.3` expressible at all: it
+looks for two *different cars* of the *same unit* opening at the same floor. A unit is also
+the scope of one EPL controller, so the fleet is 150,000 copies of lecture 7 reporting to one
+place.
+
+### Direction is one idea with two field names
+
+| field | on which event | what it means |
+|---|---|---|
+| `dir` | `HallCall`, `CarMoved` | on a call, where the passenger wants to go; on a movement, where the car is travelling |
+| `servedDir` | `DoorOpened` | the direction **this stop served** — a property of the stop, not of the journey |
+
+Both take `UP` and `DOWN`. The second is what turns bunching into a question: two cars opening
+at the same floor in the same `servedDir` are two cars answering one call, and the next call
+waits.
+
+### The events
+
+The domain has three events from the plant, and lecture 10 adds a fourth:
+
+| event | fields beyond `unitId` and `ts` | meaning |
+|---|---|---|
+| `DoorOpened` | `car`, `floor`, `servedDir` | a car opened its doors, serving that direction |
+| `CarMoved` | `car`, `floor`, `dir` | a car reached a floor, travelling that way |
+| `HallCall` | `floor`, `dir` | somebody pressed a landing button |
+| `Fault` | `code` | rare, high value, and on its own topic — `DOOR_OBSTRUCTED`, `OVERSPEED`, `COMMS_LOST` |
+
+**This module's trace sends only `DoorOpened` and `Fault`**, because all four queries are about
+doors. That is why the schema in the monitoring notebook has `servedDir` and no `dir`: the
+field belongs to the two events this trace does not carry. Read the schema as the shape of
+*this* stream, not of the domain.
+
+### Where `unitId` comes from
+
+**It does not exist in lectures 6 and 7.** The EPL schemas carry `car`, `floor` and `dir` and
+nothing else, because the controller lives inside one installation and has nothing to name —
+the way a thermostat does not know its own address. `unitId` appears for the first time in
+lecture 8, as the **Kafka key**, which is exactly the moment it becomes necessary: many
+installations now share one topic. That is the whole reason the field exists, and it is why
+the choice of key in this module is not a detail but the lecture's own question.
+
+### The topics
+
+| topic | partitions | key | why |
+|---|---|---|---|
+| `elevator-events` | 6 | `unitId` | frequent, low value per event |
+| `elevator-faults` | 1 | `unitId` | rare, high value, its own retention and its own consumer SLA |
+
+Two topics because the domain hands them to us, not because of volume: different retention,
+different partition counts, different consumer SLAs. The reference table that `Q.10.2` joins
+against maps each `unitId` to its `region` — 24 rows that do not move, a plain DataFrame and
+not a stream.
+
+### One thing the trace does on purpose
+
+In the background traffic, `car` and `servedDir` are decided by the same parity, so **car A
+always goes up and car B always goes down**. It is not a claim about elevators. It guarantees
+that *same floor, same direction, different cars* cannot happen by accident anywhere in the
+384 background events, so `Q.10.3` stays empty until section 2 is sent — and when a row finally
+appears, it appears because the trace asked for it and for no other reason.
+
 ## The fleet, and why it is small
 
 24 units, three regions, eight each. A laptop cannot simulate 150,000 elevators and there
