@@ -105,7 +105,7 @@ Sections are named by the headings in the notebooks, so you can always tell wher
 | 12 | monitoring | *`Q.10.3` again — n openings at one floor*, down to the `SELECT`. Then **stop and predict** the three counts | a table and a claim: EPL would say 3, 5 and 9; the join should say 4, 9 and 25 |
 | 13 | simulator | *4) One floor, a crowd*, **both** cells — the crowd and the two doors that move the clock on | 20 events, then 2. The second cell is not optional: in append mode the counts stay empty without it |
 | 14 | monitoring | the `SELECT` under *Go to the simulator: section 4)* | **4, 9, 25** at floors 1, 2 and 3. A followed-by grows with the openings; a join grows with their square |
-| 15 | monitoring | *The sizing arithmetic* → *Check your denominator before you believe the number* → *The counterintuitive part* | two rates computed from the same run, 63% apart. Both are correct; only one sizes a cluster |
+| 15 | monitoring | *The sizing arithmetic* → *Check your denominator before you believe the number* → *The counterintuitive part* | two rates computed from the same run, nearly 3x apart. Both are correct; only one sizes a cluster |
 | 16 | both | *Clean up* in the monitoring notebook, then the last cell of the simulator | the three queries stop; the two topics are deleted |
 
 ### the notebooks ship with their outputs
