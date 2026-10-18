@@ -34,6 +34,23 @@ is installed by `setup/20-kafka-client.sh` when the container starts.
 Kafka runs in KRaft mode, so there is no ZooKeeper, no schema registry and no `kafkacat` —
 this module never used them.
 
+## What the two notebooks reproduce
+
+These are the two figures from the **Handling Late Data and Watermarking** section of the
+Spark Structured Streaming Programming Guide. The module replays exactly their events, and
+the result tables you will get are theirs, cell for cell. Read them now and you will know
+what you are looking for.
+
+![Watermarking in Update Mode](https://spark.apache.org/docs/3.5.8/img/structured-streaming-watermark-update-mode.png)
+
+![Watermarking in Append Mode](https://spark.apache.org/docs/3.5.8/img/structured-streaming-watermark-append-mode.png)
+
+Two details are worth having in mind before section 4. `donkey 12:04` is discarded because
+the **end of both its windows** is at or before the watermark — not because its timestamp is
+below it. And `cat 12:09` is discarded only **by half**: `12:00 - 12:10` has closed,
+`12:05 - 12:15` has not, which is why the append figure shows `cat 1` in the first group and
+`cat 2` in the second.
+
 ## 2. Explore the notebooks
 
 1. start the notebooks
@@ -71,7 +88,11 @@ Guide** — the words, the timestamps around 12:00, the two output modes and the
 this module reproduces are the Apache Spark documentation's own. The simulator, the notebooks
 and the commentary are this course's.
 
-* https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html
+* https://spark.apache.org/docs/3.5.8/structured-streaming-programming-guide.html#handling-late-data-and-watermarking
+
+The link and the two figures above are pinned to the 3.5 guide, which is the line this
+module runs on (Spark 3.5.0), so that they keep matching what the notebooks print.
+`latest` moves: it is Spark 4 today.
 
 The module is [Emanuele Della Valle](https://emanueledellavalle.org/)'s, from earlier
 editions of this course. In October 2026 it was reworked by Emanuele and
