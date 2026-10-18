@@ -63,3 +63,29 @@ docker-compose down
 This guide allows you to **optionally** try the tools presented in the SDA course.
 
 If you are not able to set up docker or you want to **jump directly to the results of the demonstration**, go into the [`notebooks`](./notebooks/) folder: both notebooks are committed **as they ran**, with their outputs. You can read the whole demonstration — every table, every status — without starting anything.
+
+## Acknowledgements
+
+The example follows the watermarking section of the **Spark Structured Streaming Programming
+Guide** — the words, the timestamps around 12:00, the two output modes and the two figures
+this module reproduces are the Apache Spark documentation's own. The simulator, the notebooks
+and the commentary are this course's.
+
+* https://spark.apache.org/docs/latest/streaming/apis-on-dataframes-and-datasets.html
+
+The module is [Emanuele Della Valle](https://emanueledellavalle.org/)'s, from earlier
+editions of this course. In October 2026 it was reworked by Emanuele and
+[Claude](https://claude.com/product/overview) together, and it is worth saying how, because
+the division of labour is the reason the numbers in the notebooks can be trusted.
+
+Claude found that the event labelled *"too late arrival"* was in fact being counted, measured
+the rule that governs it — a row is dropped when the **end of its window** is at or before the
+watermark — and traced the second, quieter defect: one of the two queries grouped by a column
+captured before `withWatermark`, and so ran with no watermark predicate at all. Emanuele ran
+the infrastructure, executed every cell and captured every output committed here. He also
+rejected Claude's first explanation of the discrepancy, which was wrong; the second look is
+what found the real cause. Nothing on these pages is asserted from a run that was not
+recorded.
+
+Claude's work on this course is sponsored by
+[Quantia Consulting](https://www.quantiaconsulting.com/).

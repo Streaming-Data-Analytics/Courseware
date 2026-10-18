@@ -166,3 +166,20 @@ an exception that teaches nothing.
 
 The stack, the schema and the discipline of a designed trace are those of
 `Spark/sss_elevator-fleet`, which this module is the small version of.
+
+The elevator domain, the controller this module sits above and the `bunching` rule are
+[Emanuele Della Valle](https://emanueledellavalle.org/)'s, from lectures 6 and 7 of this
+course. The building, its designed trace and the five queries were built for this module by
+Emanuele and [Claude](https://claude.com/product/overview) together: Claude designed the
+trace and verified the queries, Emanuele ran the infrastructure and captured every output
+committed here.
+
+`Q.9.5` is where that division of labour pays. It reaches lecture 7's bunching rule with a
+stream-stream self-join, and the three numbers the notebook reports — eight, four and
+**three** — were a prediction until Emanuele ran the same four openings through the EPL
+online tool on 11-ott-2026 and the pattern emitted exactly three rows. The missing pair is
+the first opening against the last, and it is missing for a reason that has nothing to do
+with time. Nothing in this module is asserted from a run that was not recorded.
+
+Claude's work on this course is sponsored by
+[Quantia Consulting](https://www.quantiaconsulting.com/).
